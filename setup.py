@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="frankensteins-ml",
+    name="frankensteins-automl",
     version="0.0.1",
     description="AutoML tool with stitched together optmizers.",
     author="Lukas Brandt",
