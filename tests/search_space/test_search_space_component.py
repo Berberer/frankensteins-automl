@@ -1,4 +1,4 @@
-from frankensteins_automl.searchspace.search_space_component import (
+from frankensteins_automl.search_space.search_space_component import (
     SearchSpaceComponent,
 )
 

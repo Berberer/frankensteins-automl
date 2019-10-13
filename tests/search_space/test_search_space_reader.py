@@ -1,5 +1,5 @@
-from frankensteins_automl.searchspace import search_space_reader
-from frankensteins_automl.searchspace.search_space import SearchSpace
+from frankensteins_automl.search_space import search_space_reader
+from frankensteins_automl.search_space.search_space import SearchSpace
 
 
 class TestSearchSpaceReader:
