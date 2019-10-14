@@ -22,10 +22,10 @@ class SearchSpaceComponentInstance(object):
         )
         return False
 
-    def set_required_interfaces(self, component_instances):
+    def set_required_interfaces(self, interface_elements):
         if self.component.has_required_interfaces():
-            # Check if provided instances have as many members as needed
-            if len(component_instances) != len(self.required_interfaces):
+            # Check if interface elements have as many members as needed
+            if len(interface_elements) != len(self.required_interfaces):
                 logger.info(
                     "Not valid because given interfaces have the wrong amount"
                 )
@@ -35,22 +35,23 @@ class SearchSpaceComponentInstance(object):
                 interface_id,
                 interface_path,
             ) in self.required_interfaces.items():
-                # Check if the given interfaces have this interface
-                if interface_id not in component_instances:
+                # Check if the given interface elements have this interface
+                if interface_id not in interface_elements:
                     logger.info(f"No interface provided for id {interface_id}")
                     return False
-                if (
-                    interface_path
-                    != component_instances[interface_id].get_name()
-                ):
+                interface_element_path = (
+                    interface_elements[interface_id].__class__.__module__
+                    + "."
+                    + interface_elements[interface_id].__class__.__name__
+                )
+                if interface_path != interface_element_path:
                     warning = str(
                         "For id "
                         + interface_id
                         + " component of type "
                         + interface_path
-                        + " was expected but "
-                        + component_instances[interface_id].get_name()
-                        + " was given"
+                        + " was expected but got an element of type "
+                        + interface_element_path
                     )
                     logger.info(warning)
                     return False
