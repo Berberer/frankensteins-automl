@@ -55,6 +55,13 @@ component_description_with_unknown_type = {
     ],
 }
 
+component_description_without_params = {
+    "name": "testComponent",
+    "providedInterface": ["providedA", "providedB", "providedC"],
+    "requiredInterface": [{"id": "required1", "name": "requiredA"}],
+    "parameter": [],
+}
+
 
 class TestSearchSpaceComponent:
     def test_search_space_component_creation(self):
@@ -126,3 +133,11 @@ class TestSearchSpaceComponent:
         assert component.validate_parameter_config(
             {"testAbc": 1, "testCat": "a"}
         )
+
+    def test_has_parameter(self):
+        component_with_params = SearchSpaceComponent(component_description)
+        component_without_params = SearchSpaceComponent(
+            component_description_without_params
+        )
+        assert component_with_params.has_parameter()
+        assert not component_without_params.has_parameter()

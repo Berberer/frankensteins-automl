@@ -27,6 +27,9 @@ class SearchSpaceComponent(object):
     def get_required_interfaces(self):
         return self.required_interfaces
 
+    def has_parameter(self):
+        return len(self.params) > 0
+
     def validate_parameter_config(self, config):
         logger.info(f"Validate param config of {self.name} with {config}")
         # Check if config has at least as many members as parameters needed
