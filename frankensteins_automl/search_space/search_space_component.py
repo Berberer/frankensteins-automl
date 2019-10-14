@@ -9,8 +9,12 @@ class SearchSpaceComponent(object):
     def __init__(self, description):
         self.name = description["name"]
         logger.info(f"Create search space component {self.name}")
-        self.provided_interfaces = description["providedInterface"]
-        self.required_interfaces = description["requiredInterface"]
+        self.provided_interfaces = []
+        if "providedInterface" in description:
+            self.provided_interfaces = description["providedInterface"]
+        self.required_interfaces = {}
+        if "requiredInterface" in description:
+            self.required_interfaces = description["requiredInterface"]
         self.params = {}
         for p in description["parameter"]:
             logger.info(f"Init param {p}")
@@ -30,11 +34,14 @@ class SearchSpaceComponent(object):
     def has_parameter(self):
         return len(self.params) > 0
 
+    def has_required_interfaces(self):
+        return len(self.required_interfaces) > 0
+
     def validate_parameter_config(self, config):
         logger.info(f"Validate param config of {self.name} with {config}")
-        # Check if config has at least as many members as parameters needed
-        if len(config) < len(self.params):
-            logger.info("Not valid because config is missing params.")
+        # Check if config has as many members as parameters needed
+        if len(config) != len(self.params):
+            logger.info("Not valid because config has wrong number of params")
             return False
         # Check given values for each param
         for param, domain in self.params.items():

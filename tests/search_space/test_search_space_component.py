@@ -62,6 +62,12 @@ component_description_without_params = {
     "parameter": [],
 }
 
+component_description_without_required_interfaces = {
+    "name": "testComponent",
+    "providedInterface": ["providedA", "providedB", "providedC"],
+    "parameter": [],
+}
+
 
 class TestSearchSpaceComponent:
     def test_search_space_component_creation(self):
@@ -117,11 +123,22 @@ class TestSearchSpaceComponent:
             {"testDouble": 0.5, "testInt": 5.5, "testCat": "d"}
         )
 
-    def test_missing_param_configuration_validation(self):
+    def test_parameter_amount_configuration_validation(self):
         component = SearchSpaceComponent(component_description)
+        assert not component.validate_parameter_config(
+            {
+                "testDouble": 0.5,
+                "testInt": 5,
+                "testCat": "b",
+                "testAdditional": 1,
+            }
+        )
         assert not component.validate_parameter_config(
             {"testDouble": 1, "testInt": 5}
         )
+
+    def test_missing_param_configuration_validation(self):
+        component = SearchSpaceComponent(component_description)
         assert not component.validate_parameter_config(
             {"testDouble": 0.5, "testInt": 5, "anotherCat": "d"}
         )
@@ -141,3 +158,15 @@ class TestSearchSpaceComponent:
         )
         assert component_with_params.has_parameter()
         assert not component_without_params.has_parameter()
+
+    def test_has_required_interafaces(self):
+        component_with_required_interfaces = SearchSpaceComponent(
+            component_description
+        )
+        compomemt_without_required_interfaces = SearchSpaceComponent(
+            component_description_without_required_interfaces
+        )
+        assert component_with_required_interfaces.has_required_interfaces()
+        assert (
+            not compomemt_without_required_interfaces.has_required_interfaces()
+        )
