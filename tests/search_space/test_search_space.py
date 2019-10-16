@@ -7,6 +7,15 @@ search_space = search_space_reader.create_search_space(
 
 
 class TestSearchSpaceReader:
+    def test_component_retrievement(self):
+        component = search_space.get_component_by_name(
+            "sklearn.naive_bayes.GaussianNB"
+        )
+        assert component.get_name() == "sklearn.naive_bayes.GaussianNB"
+
+    def test_non_existing_component_retrievement(self):
+        assert search_space.get_component_by_name("abc.def.GHI") is None
+
     def test_interface_retrievement(self):
         providing_components = search_space.get_components_providing_interface(
             "BaseLearner"
