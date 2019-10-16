@@ -16,11 +16,12 @@ class SearchSpaceComponent(object):
         if "requiredInterface" in description:
             self.required_interfaces = description["requiredInterface"]
         self.params = {}
-        for p in description["parameter"]:
-            logger.info(f"Init param {p}")
-            param_domain = copy.deepcopy(p)
-            del param_domain["name"]
-            self.params[p["name"]] = param_domain
+        if "parameter" in description:
+            for p in description["parameter"]:
+                logger.info(f"Init param {p}")
+                param_domain = copy.deepcopy(p)
+                del param_domain["name"]
+                self.params[p["name"]] = param_domain
 
     def get_name(self):
         return self.name
@@ -93,3 +94,27 @@ class SearchSpaceComponent(object):
                 return False
         # Validation of all config params was successfull
         return True
+
+    def create_construction_args_from_config(
+        self, parameter_config, required_interfaces
+    ):
+        positional_args = []
+        keyword_args = {}
+        if parameter_config is not None:
+            for parameter in self.params:
+                key = self.params[parameter]["construction_key"]
+                if isinstance(key, str):
+                    keyword_args[key] = parameter_config[parameter]
+                elif isinstance(key, int):
+                    positional_args.insert(key, parameter_config[parameter])
+        if required_interfaces is not None:
+            for interface in self.required_interfaces:
+                logger.info(interface)
+                key = interface["construction_key"]
+                if isinstance(key, str):
+                    keyword_args[key] = required_interfaces[interface["id"]]
+                elif isinstance(key, int):
+                    positional_args.insert(
+                        key, required_interfaces[interface["id"]]
+                    )
+        return positional_args, keyword_args

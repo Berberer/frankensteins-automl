@@ -7,9 +7,9 @@ component_description = {
     "name": "testComponent",
     "providedInterface": ["providedA", "providedB", "providedC"],
     "requiredInterface": [
-        {"id": "required1", "name": "requiredA"},
-        {"id": "required2", "name": "requiredB"},
-        {"id": "required3", "name": "requiredC"},
+        {"id": "required1", "name": "requiredA", "construction_key": "key_a"},
+        {"id": "required2", "name": "requiredB", "construction_key": 2},
+        {"id": "required3", "name": "requiredC", "construction_key": "key_b"},
     ],
     "parameter": [
         {
@@ -18,8 +18,7 @@ component_description = {
             "default": 0.53,
             "min": 0.05,
             "max": 1.01,
-            "minInterval": 0.05,
-            "refineSplits": 2,
+            "construction_key": 1,
         },
         {
             "name": "testInt",
@@ -27,14 +26,14 @@ component_description = {
             "default": 6,
             "min": 1,
             "max": 11,
-            "minInterval": 1,
-            "refineSplits": 2,
+            "construction_key": 0,
         },
         {
             "name": "testCat",
             "default": "a",
             "type": "cat",
             "values": ["a", "b", "c"],
+            "construction_key": "key_c",
         },
     ],
 }
@@ -79,9 +78,17 @@ class TestSearchSpaceComponent:
             "providedC",
         ]
         assert component.get_required_interfaces() == [
-            {"id": "required1", "name": "requiredA"},
-            {"id": "required2", "name": "requiredB"},
-            {"id": "required3", "name": "requiredC"},
+            {
+                "id": "required1",
+                "name": "requiredA",
+                "construction_key": "key_a",
+            },
+            {"id": "required2", "name": "requiredB", "construction_key": 2},
+            {
+                "id": "required3",
+                "name": "requiredC",
+                "construction_key": "key_b",
+            },
         ]
 
     def test_correct_configuration_validation(self):
@@ -170,3 +177,12 @@ class TestSearchSpaceComponent:
         assert (
             not compomemt_without_required_interfaces.has_required_interfaces()
         )
+
+    def test_contrsuction_args_creation(self):
+        component = SearchSpaceComponent(component_description)
+        postional, keyword = component.create_construction_args_from_config(
+            {"testDouble": 1.2, "testInt": 2, "testCat": "a"},
+            {"required1": "abc", "required2": "def", "required3": "ghi"},
+        )
+        assert postional == [2, 1.2, "def"]
+        assert keyword == {"key_a": "abc", "key_b": "ghi", "key_c": "a"}
