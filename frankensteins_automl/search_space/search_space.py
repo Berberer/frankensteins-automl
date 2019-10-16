@@ -23,6 +23,12 @@ class SearchSpace(object):
                         component_name
                     )
 
+    def get_component_by_name(self, component_name):
+        if component_name in self.components_by_name:
+            return self.components_by_name[component_name]
+        else:
+            return None
+
     def get_components_providing_interface(self, interface_name):
         if interface_name in self.components_providing_interface:
             component_names = self.components_providing_interface[
