@@ -4,7 +4,7 @@
   {
   	"name": "tpot.builtins.StackingEstimator",
   	"providedInterface": ["tpot.builtins.StackingEstimator", "AbstractPreprocessor", "Stacking"],
-  	"requiredInterface": [ {"id": "estimator", "name": "BaseLearner"} ],
+  	"requiredInterface": [ {"name": "BaseLearner"} ],
   	"parameter" : [ ]
   },
   {

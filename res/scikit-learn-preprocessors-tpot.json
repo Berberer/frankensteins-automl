@@ -183,7 +183,7 @@
   }, {
     "name" : "sklearn.feature_selection.SelectFwe",
     "providedInterface" : [ "sklearn.feature_selection.SelectFwe", "FeatureSelection", "AbstractPreprocessor", "BasicPreprocessor"  ],
-    "requiredInterface" : [ {"id": "score_func", "name": "sklearn.feature_selection.f_classif"} ],
+    "requiredInterface" : [ {"name": "sklearn.feature_selection.f_classif"} ],
     "parameter" : [ {
       "name" : "alpha",
       "type" : "double",
@@ -196,7 +196,7 @@
   }, {
     "name" : "sklearn.feature_selection.SelectPercentile",
     "providedInterface" : [ "sklearn.feature_selection.SelectPercentile", "FeatureSelection", "AbstractPreprocessor", "BasicPreprocessor"  ],
-    "requiredInterface" : [ {"id": "score_func", "name": "sklearn.feature_selection.f_classif"} ],
+    "requiredInterface" : [ {"name": "sklearn.feature_selection.f_classif"} ],
     "parameter" : [ {
       "name" : "percentile",
       "type" : "int",
@@ -219,7 +219,7 @@
   }, {
     "name" : "sklearn.feature_selection.RFE",
     "providedInterface" : [ "sklearn.feature_selection.RFE", "FeatureSelection", "AbstractPreprocessor", "BasicPreprocessor"  ],
-    "requiredInterface" : [ {"id": "estimator", "name": "sklearn.ensemble.ExtraTreesClassifier" } ],
+    "requiredInterface" : [ {"name": "sklearn.ensemble.ExtraTreesClassifier" } ],
     "parameter" : [ {
       "name" : "step",
       "type" : "double",
@@ -232,7 +232,7 @@
   }, {
     "name" : "sklearn.feature_selection.SelectFromModel",
     "providedInterface" : [ "sklearn.feature_selection.SelectFromModel", "FeatureSelection", "AbstractPreprocessor", "BasicPreprocessor"  ],
-    "requiredInterface" : [  {"id": "estimator", "name":"sklearn.ensemble.ExtraTreesClassifier" }],
+    "requiredInterface" : [  {"name":"sklearn.ensemble.ExtraTreesClassifier" }],
     "parameter" : [ {
       "name" : "threshold",
       "type" : "double",

@@ -39,7 +39,7 @@ class SearchSpaceComponentInstance(object):
                 interface_path = interface["name"]
                 # Check if the given interface elements have this interface
                 if interface_id not in interface_elements:
-                    logger.info(f"No interface provided for id {interface_id}")
+                    logger.info(f"No interface provided for {interface_path}")
                     return False
                 interface_element_path = (
                     interface_elements[interface_id].__class__.__module__
@@ -48,10 +48,7 @@ class SearchSpaceComponentInstance(object):
                 )
                 if interface_path != interface_element_path:
                     warning = str(
-                        "For id "
-                        + interface_id
-                        + " component of type "
-                        + interface_path
+                        interface_path
                         + " was expected but got an element of type "
                         + interface_element_path
                     )

@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import uuid
 from .search_space_component import SearchSpaceComponent
 from .search_space import SearchSpace
 
@@ -20,6 +21,12 @@ def create_search_space(*paths):
                     search_space = json.load(search_space_json)
                     search_space_components = search_space["components"]
                     for component in search_space_components:
+                        if (
+                            "requiredInterface" in component
+                            and component["requiredInterface"] is not None
+                        ):
+                            for interface in component["requiredInterface"]:
+                                interface["id"] = str(uuid.uuid1())
                         new_component = SearchSpaceComponent(component)
                         logger.info(
                             f"Add component {new_component.get_name()}"

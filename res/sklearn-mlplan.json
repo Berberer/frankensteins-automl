@@ -7,10 +7,8 @@
 	  	    "providedInterface" : [ "MLPipeline", "AbstractClassifier" ],
 	  	    "requiredInterface" : [
 	  	    	{
-	  	    		"id": "preprocessor",
 	  	    		"name": "AbstractPreprocessor"
 	  	    	}, {
-	  	    		"id": "classifier",
 	  	    		"name": "BasicClassifier"
 	  	    	}
 			],

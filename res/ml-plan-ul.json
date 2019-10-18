@@ -7,10 +7,8 @@
 	  	    "providedInterface" : [ "MLPipeline", "AbstractClassifier" ],
 	  	    "requiredInterface" : [
 	  	    	{
-	  	    		"id": "preprocessor",
 	  	    		"name": "AbstractPreprocessor"
 	  	    	}, {
-	  	    		"id": "classifier",
 	  	    		"name": "BasicClassifier"
 	  	    	}
 			],
@@ -19,13 +17,13 @@
   		{
   			"name" : "sklearn.pipeline.make_union",
 			"providedInterface" : [ "AbstractPreprocessor", "MakeUnion" ],
-			"requiredInterface" : [ { "id": "p1", "name": "BasicPreprocessor" },{ "id": "p2", "name": "BasicPreprocessor" } ],
+			"requiredInterface" : [ { "name": "BasicPreprocessor" },{ "name": "BasicPreprocessor" } ],
 			"parameter" : [ ]
 		},
 		{
 			"name" : "mlplan.util.model.make_forward",
 			"providedInterface" : [ "AbstractPreprocessor", "MakeForward" ],
-			"requiredInterface" : [ { "id": "base", "name": "BasicPreprocessor"}, {"id": "source", "name": "AbstractPreprocessor"} ],
+			"requiredInterface" : [ {  "name": "BasicPreprocessor"}, {"name": "AbstractPreprocessor"} ],
 			"parameter" : [ ]
 		}
 	]
