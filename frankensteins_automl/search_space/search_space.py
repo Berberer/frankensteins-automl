@@ -38,4 +38,7 @@ class SearchSpace(object):
             for component in component_names:
                 components.append(self.components_by_name[component])
             return components
+        logger.warning(
+            f"No provided interfaces for unknown component {interface_name}"
+        )
         return None

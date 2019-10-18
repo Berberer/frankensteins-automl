@@ -1,31 +1,63 @@
 import logging
+import uuid
 
 
 logger = logging.getLogger(__name__)
 
 
 class SearchSpaceRestProblem(object):
-    def __init__(self, unsatisfied_required_interfaces, component_mapping):
-        self.unsatisfied_required_interfaces = unsatisfied_required_interfaces
+    def __init__(self, required_interfaces, component_mapping):
+        self.required_interfaces = required_interfaces
         self.component_mapping = component_mapping
 
     @classmethod
     def from_previous_rest_problem(
         cls, rest_problem, satisfied_interface_component
     ):
-        pass
+        ri = rest_problem.get_required_interfaces()
+        for i, interface in enumerate(ri):
+            if not interface["satisfied"]:
+                interface["satisfied"] = True
+                logger.info(f"Mark interface {interface} as satisfied")
+                break
+        component_mapping = rest_problem.get_component_mapping()
+        new_component_id = str(uuid.uuid1())
+        component_mapping[new_component_id] = satisfied_interface_component
+        if satisfied_interface_component.get_required_interfaces() is not None:
+            for (
+                interface
+            ) in satisfied_interface_component.get_required_interfaces():
+                ri.append(
+                    {
+                        "interface": interface,
+                        "satisfied": False,
+                        "component_id": new_component_id,
+                    }
+                )
+        return SearchSpaceRestProblem(ri, component_mapping)
 
     def is_satisfied(self):
-        return (
-            self.unsatisfied_required_interfaces is None
-            or len(self.unsatisfied_required_interfaces) == 0
-        )
+        if (
+            self.required_interfaces is None
+            or len(self.required_interfaces) == 0
+        ):
+            logger.info("No required interfaces in rest problem")
+            return True
+        else:
+            for interface in self.required_interfaces:
+                if not interface["satisfied"]:
+                    return False
+            logger.info("All interfaces satisfied in rest problem")
+            return True
 
-    def get_unsatisfied_required_interfaces(self):
-        pass
+    def get_required_interfaces(self):
+        return self.required_interfaces
 
     def get_first_unsatisfied_required_interface(self):
-        pass
+        for interface in self.required_interfaces:
+            if not interface["satisfied"]:
+                return interface["interface"]
+        return None
 
     def get_component_mapping(self):
         return self.component_mapping
@@ -56,9 +88,26 @@ class SearchSpaceGraphNode(object):
 class SearchSpaceGraphGenerator(object):
     def __init__(self, search_space, initial_component_name):
         self.search_space = search_space
-        self.root_node = self.search_space.get_component_by_name(
+        root_component = self.search_space.get_component_by_name(
             initial_component_name
         )
+        root_component_id = str(uuid.uuid1())
+        unsatisfied_interfaces = []
+        component_mapping = {}
+        component_mapping[root_component_id] = root_component
+        if root_component.get_required_interfaces() is not None:
+            for ri in root_component.get_required_interfaces():
+                unsatisfied_interfaces.append(
+                    {
+                        "interface": ri,
+                        "satisfied": False,
+                        "component_id": root_component_id,
+                    }
+                )
+        rest_problem = SearchSpaceRestProblem(
+            unsatisfied_interfaces, component_mapping
+        )
+        self.root_node = SearchSpaceGraphNode(None, rest_problem)
 
     def get_root_node(self):
         return self.root_node
@@ -66,10 +115,10 @@ class SearchSpaceGraphGenerator(object):
     def generate_sucessors(self, node):
         if node is None:
             logger.warn("Cannot generate succesors of None")
-            return None
+            return []
         if node.is_leaf_node():
             logger.info("Node is a leaf node and has no successors")
-            return None
+            return []
         rest_problem = node.get_rest_problem()
         interface = rest_problem.get_first_unsatisfied_required_interface()[
             "name"
