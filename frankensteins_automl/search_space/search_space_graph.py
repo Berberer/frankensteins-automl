@@ -1,3 +1,4 @@
+import copy
 import logging
 import uuid
 
@@ -14,13 +15,12 @@ class SearchSpaceRestProblem(object):
     def from_previous_rest_problem(
         cls, rest_problem, satisfied_interface_component
     ):
-        ri = rest_problem.get_required_interfaces()
+        ri = copy.deepcopy(rest_problem.get_required_interfaces())
         for i, interface in enumerate(ri):
             if not interface["satisfied"]:
                 interface["satisfied"] = True
-                logger.info(f"Mark interface {interface} as satisfied")
                 break
-        component_mapping = rest_problem.get_component_mapping()
+        component_mapping = copy.deepcopy(rest_problem.get_component_mapping())
         new_component_id = str(uuid.uuid1())
         component_mapping[new_component_id] = satisfied_interface_component
         if satisfied_interface_component.get_required_interfaces() is not None:
@@ -37,18 +37,11 @@ class SearchSpaceRestProblem(object):
         return SearchSpaceRestProblem(ri, component_mapping)
 
     def is_satisfied(self):
-        if (
-            self.required_interfaces is None
-            or len(self.required_interfaces) == 0
-        ):
-            logger.info("No required interfaces in rest problem")
-            return True
-        else:
-            for interface in self.required_interfaces:
-                if not interface["satisfied"]:
-                    return False
-            logger.info("All interfaces satisfied in rest problem")
-            return True
+        for interface in self.required_interfaces:
+            if not interface["satisfied"]:
+                return False
+        logger.info("All interfaces satisfied in rest problem")
+        return True
 
     def get_required_interfaces(self):
         return self.required_interfaces
@@ -113,9 +106,6 @@ class SearchSpaceGraphGenerator(object):
         return self.root_node
 
     def generate_sucessors(self, node):
-        if node is None:
-            logger.warn("Cannot generate succesors of None")
-            return []
         if node.is_leaf_node():
             logger.info("Node is a leaf node and has no successors")
             return []
