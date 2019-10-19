@@ -186,3 +186,19 @@ class TestSearchSpaceComponent:
         )
         assert postional == [2, 1.2, "def"]
         assert keyword == {"key_a": "abc", "key_b": "ghi", "key_c": "a"}
+
+    def test_default_param_config(self):
+        component = SearchSpaceComponent(component_description)
+        default_config = component.create_default_parameter_config()
+        assert default_config == {
+            "testDouble": 0.53,
+            "testInt": 6,
+            "testCat": "a",
+        }
+
+    def test_random_param_config(self):
+        component = SearchSpaceComponent(component_description)
+        random_config = component.draw_random_parameter_config()
+        assert "testDouble" in random_config
+        assert "testInt" in random_config
+        assert "testCat" in random_config

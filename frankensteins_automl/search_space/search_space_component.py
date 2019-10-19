@@ -1,5 +1,6 @@
 import copy
 import logging
+import random
 
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,36 @@ class SearchSpaceComponent(object):
 
     def has_required_interfaces(self):
         return len(self.required_interfaces) > 0
+
+    def create_default_parameter_config(self):
+        config = {}
+        for name, domain in self.params.items():
+            if "default" in domain:
+                config[name] = domain["default"]
+            else:
+                logger.warn(f"Parameter {name} has no default value")
+                config[name] = self._draw_random_parameter_value(domain)
+        return config
+
+    def draw_random_parameter_config(self):
+        config = {}
+        for name, domain in self.params.items():
+            config[name] = self._draw_random_parameter_value(domain)
+        return config
+
+    def _draw_random_parameter_value(self, domain):
+        param_type = domain["type"]
+        if param_type == "double":
+            return random.uniform(domain["min"], domain["max"])
+        elif param_type == "int":
+            return random.randint(domain["min"], domain["max"])
+        elif param_type == "cat":
+            return random.choice(domain["values"])
+        else:
+            logger.warn(
+                f"Unknown parameter type {param_type}, so returning None"
+            )
+            return None
 
     def validate_parameter_config(self, config):
         logger.info(f"Validate param config of {self.name} with {config}")
