@@ -11,13 +11,13 @@ class TestSearchSpaceReader:
 
     def test_json_parsing(self):
         search_space = search_space_reader.create_search_space(
-            "res/ml-plan-ul.json"
+            "res/search_space/ml-plan-ul.json"
         )
         assert isinstance(search_space, SearchSpace)
 
     def test_assigned_ids(self):
         search_space = search_space_reader.create_search_space(
-            "res/ml-plan-ul.json"
+            "res/search_space/ml-plan-ul.json"
         )
         c1 = search_space.get_component_by_name(
             "sklearn.pipeline.make_pipeline"

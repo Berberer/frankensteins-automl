@@ -11,9 +11,9 @@ logger.addHandler(logging.NullHandler())
 
 # Generate a big enoug search space graph
 search_space = search_space_reader.create_search_space(
-    "res/ml-plan-ul.json",
-    "res/scikit-learn-classifiers-tpot.json",
-    "res/scikit-learn-preprocessors-tpot.json",
+    "res/search_space/ml-plan-ul.json",
+    "res/search_space/scikit-learn-classifiers-tpot.json",
+    "res/search_space/scikit-learn-preprocessors-tpot.json",
 )
 generator = SearchSpaceGraphGenerator(
     search_space, "sklearn.pipeline.make_pipeline"
