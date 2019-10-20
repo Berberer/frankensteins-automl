@@ -16,13 +16,14 @@ class SearchSpaceRestProblem(object):
         cls, rest_problem, satisfied_interface_component
     ):
         ri = copy.deepcopy(rest_problem.get_required_interfaces())
-        for i, interface in enumerate(ri):
-            if not interface["satisfied"]:
-                interface["satisfied"] = True
-                break
         component_mapping = copy.deepcopy(rest_problem.get_component_mapping())
         new_component_id = str(uuid.uuid1())
         component_mapping[new_component_id] = satisfied_interface_component
+        for i, interface in enumerate(ri):
+            if not interface["satisfied"]:
+                interface["satisfied"] = True
+                interface["satisfied_with"] = new_component_id
+                break
         if satisfied_interface_component.get_required_interfaces() is not None:
             for (
                 interface
