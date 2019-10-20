@@ -53,7 +53,7 @@ class SearchSpaceComponentInstance(object):
                         + interface_element_path
                     )
                     logger.info(warning)
-                    return False
+                    # return False
             self.required_interfaces = interface_elements
             logger.info(
                 f"{self.component.get_name()} interfaces: {interface_elements}"
@@ -86,11 +86,16 @@ class SearchSpaceComponentInstance(object):
         # Import module and create element with parameters
         try:
             module = importlib.import_module(".".join(module_path))
-            component_constructor = getattr(module, class_name)
-            logger.info(f"Imported constructor: {component_constructor}")
-            return component_constructor(
-                *positional_parameter, **keyword_parameter
-            )
+            if self.component.is_function_pointer():
+                component_function = getattr(module, class_name)
+                logger.info(f"Resolved function pointer: {component_function}")
+                return component_function
+            else:
+                component_constructor = getattr(module, class_name)
+                logger.info(f"Imported constructor: {component_constructor}")
+                return component_constructor(
+                    *positional_parameter, **keyword_parameter
+                )
         except ImportError:
             logger.exception(
                 f"Error while importing {self.component.get_name()}"

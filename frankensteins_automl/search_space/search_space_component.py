@@ -16,6 +16,10 @@ class SearchSpaceComponent(object):
         self.required_interfaces = {}
         if "requiredInterface" in description:
             self.required_interfaces = description["requiredInterface"]
+        self.function_pointer = (
+            "function_pointer" in description
+            and description["function_pointer"]
+        )
         self.params = {}
         if "parameter" in description:
             for p in description["parameter"]:
@@ -38,6 +42,9 @@ class SearchSpaceComponent(object):
 
     def has_required_interfaces(self):
         return len(self.required_interfaces) > 0
+
+    def is_function_pointer(self):
+        return self.function_pointer
 
     def create_default_parameter_config(self):
         config = {}
@@ -63,6 +70,8 @@ class SearchSpaceComponent(object):
             return random.randint(domain["min"], domain["max"])
         elif param_type == "cat":
             return random.choice(domain["values"])
+        elif param_type == "bool":
+            return bool(random.getrandbits(1))
         else:
             logger.warn(
                 f"Unknown parameter type {param_type}, so returning None"
@@ -88,6 +97,10 @@ class SearchSpaceComponent(object):
                         logger.info(
                             f"Not valid because {config[param]} is unknown"
                         )
+                        return False
+                # Type is a boolean
+                elif param_type == "bool":
+                    if not isinstance(config[param], bool):
                         return False
                 # Type is a number
                 elif param_type == "double" or param_type == "int":

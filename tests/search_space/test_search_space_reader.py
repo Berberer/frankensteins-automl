@@ -23,10 +23,7 @@ class TestSearchSpaceReader:
             "sklearn.pipeline.make_pipeline"
         )
         c2 = search_space.get_component_by_name("sklearn.pipeline.make_union")
-        c3 = search_space.get_component_by_name(
-            "mlplan.util.model.make_forward"
-        )
-        components = [c1, c2, c3]
+        components = [c1, c2]
         used_ids = []
         for component in components:
             for ri in component.get_required_interfaces():

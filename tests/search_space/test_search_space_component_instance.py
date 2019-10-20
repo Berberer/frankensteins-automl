@@ -78,7 +78,6 @@ class TestSearchSpaceComponentInstance:
         component = SearchSpaceComponent(description)
         instance = SearchSpaceComponentInstance(component)
         assert not instance.set_required_interfaces({})
-        assert not instance.set_required_interfaces({"estimator": "abc"})
 
     def test_pipeline_element_construction(self):
         component = SearchSpaceComponent(description)
