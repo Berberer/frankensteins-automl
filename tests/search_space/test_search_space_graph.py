@@ -32,9 +32,9 @@ lengths = []
 while len(open_list) > 0 and len(lengths) < 3:
     node = open_list[0]
     open_list = open_list[1:]
-    sucessors = generator.generate_sucessors(node)
-    if len(sucessors) > 0:
-        open_list.extend(sucessors)
+    successors = generator.generate_successors(node)
+    if len(successors) > 0:
+        open_list.extend(successors)
     else:
         length = len(node.get_rest_problem().get_required_interfaces())
         if length not in lengths:

@@ -106,7 +106,7 @@ class SearchSpaceGraphGenerator(object):
     def get_root_node(self):
         return self.root_node
 
-    def generate_sucessors(self, node):
+    def generate_successors(self, node):
         if node.is_leaf_node():
             logger.info("Node is a leaf node and has no successors")
             return []
