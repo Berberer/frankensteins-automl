@@ -37,14 +37,17 @@ class SearchSpaceComponent(object):
     def get_required_interfaces(self):
         return self.required_interfaces
 
-    def has_parameter(self):
-        return len(self.params) > 0
-
     def has_required_interfaces(self):
         return len(self.required_interfaces) > 0
 
     def is_function_pointer(self):
         return self.function_pointer
+
+    def has_parameter(self):
+        return len(self.params) > 0
+
+    def get_parameter_description(self):
+        return self.params
 
     def create_default_parameter_config(self):
         config = {}
