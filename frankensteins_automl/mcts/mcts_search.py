@@ -108,7 +108,10 @@ class MctsSearch:
                 )
         logger.info(f"Start random search simulations")
         for simulation_result in asyncio.as_completed(
-            [rs.perform_simulation() for rs in random_searches]
+            [
+                rs.perform_simulation(self.config.optimization_time_budget)
+                for rs in random_searches
+            ]
         ):
             leaf, result, score = await simulation_result
             leaf.recalculate_node_value(score)
