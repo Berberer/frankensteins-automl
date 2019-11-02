@@ -5,10 +5,11 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractOptimizer(ABC):
-    def __init__(self, parameter_store):
+    def __init__(self, parameter_domain, pipeline_evaluator):
         super().__init__()
-        self.parameter_store = parameter_store
+        self.parameter_domain = parameter_domain
+        self.pipeline_evaluator = pipeline_evaluator
 
     @abstractmethod
-    def perform_optimization(self, leaf_id, optimization_time_budget):
+    async def perform_optimization(self, optimization_time_budget):
         pass
