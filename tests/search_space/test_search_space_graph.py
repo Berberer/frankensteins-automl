@@ -83,7 +83,11 @@ class TestSearchSpaceGraph:
             assert isinstance(pipeline, Pipeline)
             try:
                 score = cross_val_score(
-                    pipeline, numpy.copy(x), numpy.copy(y), cv=5
+                    pipeline,
+                    numpy.copy(x),
+                    numpy.copy(y),
+                    cv=5,
+                    error_score="raise",
                 )
                 logger.info(f"\tScore: {score}")
                 assert score.mean() > 0.5
