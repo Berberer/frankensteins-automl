@@ -8,28 +8,28 @@ from frankensteins_automl.search_space.search_space_component_instance import (
 logger = logging.getLogger(__name__)
 
 
-def construct_pipeline(start_component, rest_problem, parameter):
+def construct_pipeline(start_component_name, rest_problem, parameter):
     component_mapping = copy.deepcopy(rest_problem.get_component_mapping())
     required_interfaces = copy.deepcopy(rest_problem.get_required_interfaces())
     for component_id, component in component_mapping.items():
-        if component.get_name() == start_component:
-            return assemble_component_instance(
+        if component.get_name() == start_component_name:
+            return _assemble_component_instance(
                 component_id, component_mapping, required_interfaces, parameter
             )
-    logger.warn(f"No component found as start {start_component}")
+    logger.warn(f"No component found as start {start_component_name}")
     return None
 
 
-def assemble_component_instance(
+def _assemble_component_instance(
     component_id, component_mapping, required_interfaces, parameter
 ):
     logger.info(f"Assembling {component_id}")
     logger.info(f"Params for assembling: {parameter}")
     logger.info(f"Components for assembling: {component_mapping}")
-    params = parameter[component_id]
-    del parameter[component_id]
+    params = {}
+    if component_id in parameter:
+        params = parameter[component_id]
     component = component_mapping[component_id]
-    del component_mapping[component_id]
     instance = SearchSpaceComponentInstance(component)
     # Create required interfaces
     if component.has_required_interfaces():
@@ -44,7 +44,7 @@ def assemble_component_instance(
         interface_instances = {}
         for interface in interfaces:
             required_interfaces.remove(interface)
-            created_element = assemble_component_instance(
+            created_element = _assemble_component_instance(
                 interface["satisfied_with"],
                 component_mapping,
                 required_interfaces,

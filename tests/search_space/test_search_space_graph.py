@@ -3,13 +3,16 @@ import json
 import numpy
 import logging
 from frankensteins_automl.machine_learning.pipelines import (
+    pipeline_evaluator,
     pipeline_constructor,
+)
+from frankensteins_automl.optimizers.optimization_parameter_domain import (
+    OptimizationParameterDomain,
 )
 from frankensteins_automl.search_space import search_space_reader
 from frankensteins_automl.search_space.search_space_graph import (
     SearchSpaceGraphGenerator,
 )
-from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import Pipeline
 
 logger = logging.getLogger("test-log")
@@ -62,18 +65,22 @@ class TestSearchSpaceGraph:
             arff.load(open("res/datasets/blood_transfusion.arff", "r"))["data"]
         )
         data = data.astype(numpy.float64)
-        x = data[:, :4]
-        y = data[:, 4]
+        data_x = data[:, :4]
+        data_y = data[:, 4]
         for leaf in leaf_nodes:
-            default_params = {}
             logger.info("Component mapping: ")
             cm = leaf.get_rest_problem().get_component_mapping()
+            param_domain = OptimizationParameterDomain(cm)
+            default_params = param_domain.get_default_config()
             for id, component in cm.items():
                 logger.info(f"\t{id}:{component.get_name()}")
-                default_params[
-                    id
-                ] = component.create_default_parameter_config()
             logger.info(f"\tParams: {default_params}")
+            evaluator = pipeline_evaluator.PipelineEvaluator(
+                numpy.copy(data_x),
+                numpy.copy(data_y),
+                "sklearn.pipeline.make_pipeline",
+                leaf.get_rest_problem(),
+            )
             pipeline = pipeline_constructor.construct_pipeline(
                 "sklearn.pipeline.make_pipeline",
                 leaf.get_rest_problem(),
@@ -82,15 +89,9 @@ class TestSearchSpaceGraph:
             assert pipeline is not None
             assert isinstance(pipeline, Pipeline)
             try:
-                score = cross_val_score(
-                    pipeline,
-                    numpy.copy(x),
-                    numpy.copy(y),
-                    cv=5,
-                    error_score="raise",
-                )
+                score = evaluator.evaluate_pipeline(default_params)
                 logger.info(f"\tScore: {score}")
-                assert score.mean() > 0.5
+                assert score > 0.5
                 logger.info("################################")
             except Exception as e:
                 logger.exception(f"Error while scoring pipeline: {e}")

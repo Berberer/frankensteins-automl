@@ -1,7 +1,7 @@
-import asyncio
 import copy
 import logging
 import random
+from threading import Thread, Event
 from frankensteins_automl.optimizers.abstract_optimizer import (
     AbstractOptimizer,
 )
@@ -13,28 +13,27 @@ class RandomSearch(AbstractOptimizer):
     def __init__(self, parameter_domain, pipeline_evaluator):
         super().__init__(parameter_domain, pipeline_evaluator)
         self.best_candidate = self.parameter_domain.get_default_config()
-        self.best_score = self.pipeline_evaluator.evaluate_parameter(
+        self.best_score = self.pipeline_evaluator.evaluate_pipeline(
             self.best_candidate
         )
+        self.parameter_domain.add_result(self.best_candidate, self.best_score)
+        self.stop_event = Event()
 
-    async def perform_optimization(self, optimization_time_budget):
-        if self.parameter_domain.has_results():
-            best_from_domain = self.parameter_domain.get_top_results(1)
-            self.best_score, self.best_candidate = best_from_domain
+    def perform_optimization(self, optimization_time_budget):
+        best_from_domain = self.parameter_domain.get_top_results(1)[0]
+        self.best_score, self.best_candidate = best_from_domain
         logger.info(f"Random Search starts with score: {self.best_score}")
-        try:
-            await asyncio.wait_for(
-                self._search_awaitable(), timeout=optimization_time_budget
-            )
-        except asyncio.TimeoutError:
-            logger.info(f"Optimization timeout.")
+        search_thread = Thread(target=self._search_loop)
+        search_thread.start()
+        search_thread.join(timeout=optimization_time_budget)
+        self.stop_event.set()
         logger.info(f"Random Search ends with score: {self.best_score}")
         return self.best_candidate, self.best_score
 
-    async def _search_loop(self):
+    def _search_loop(self):
         while True:
             candidate = self._next_step()
-            candidate_score = self.pipeline_evaluator.evaluate_parameter(
+            candidate_score = self.pipeline_evaluator.evaluate_pipeline(
                 candidate
             )
             self.parameter_domain.add_result(candidate, candidate_score)
@@ -42,13 +41,16 @@ class RandomSearch(AbstractOptimizer):
                 f"Random search found a config with score: {candidate_score}"
             )
             if candidate_score > self.best_score:
+                logger.info(f"Replace old score: {self.best_score}")
                 self.best_candidate = candidate
                 self.best_score = candidate_score
+            if self.stop_event.is_set():
+                break
 
     def _next_step(self):
         candidate = copy.deepcopy(self.best_candidate)
         # Select a random parameter from a random component to change
-        changed_component = candidate[random.choice(list(candidate.keys()))]
+        changed_component = random.choice(list(candidate.keys()))
         changed_parameter = random.choice(
             list(candidate[changed_component].keys())
         )
@@ -90,5 +92,6 @@ class RandomSearch(AbstractOptimizer):
                 new_value = False
             else:
                 new_value = True
+        logger.info(f"{changed_parameter}: {current_value}->{new_value}")
         candidate[changed_component][changed_parameter] = new_value
         return candidate

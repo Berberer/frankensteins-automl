@@ -11,5 +11,5 @@ class AbstractOptimizer(ABC):
         self.pipeline_evaluator = pipeline_evaluator
 
     @abstractmethod
-    async def perform_optimization(self, optimization_time_budget):
+    def perform_optimization(self, optimization_time_budget):
         pass

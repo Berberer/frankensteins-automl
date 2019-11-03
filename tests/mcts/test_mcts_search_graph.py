@@ -1,3 +1,4 @@
+from frankensteins_automl.machine_learning.pipelines import pipeline_evaluator
 from frankensteins_automl.mcts.mcts_search_graph import (
     MctsGraphGenerator,
     MctsGraphNode,
@@ -17,7 +18,12 @@ search_space = search_space_reader.create_search_space(
 
 # Generate a MCTS Graph by Breadth First Search
 generator = MctsGraphGenerator(
-    search_space, "sklearn.pipeline.make_pipeline", [RandomSearch]
+    search_space,
+    "sklearn.pipeline.make_pipeline",
+    [RandomSearch],
+    pipeline_evaluator.PipelineEvaluator,
+    None,
+    None,
 )
 root = generator.get_root_node()
 open_list = [root]
