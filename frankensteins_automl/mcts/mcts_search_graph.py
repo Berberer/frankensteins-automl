@@ -81,7 +81,7 @@ class MctsGraphNode(SearchSpaceGraphNode):
         if self.optimizer is not None:
             return await self.optimizer.perform_optimization(time_budget)
         else:
-            logger.warn("Node has not optimizer!")
+            logger.warning("Node has not optimizer!")
 
 
 class MctsGraphGenerator(SearchSpaceGraphGenerator):
@@ -126,7 +126,7 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
                     successors.append(
                         MctsGraphNode(node, node.get_rest_problem(), optimizer)
                     )
-                logger.info(f"{len(successors)} successors for optimizers")
+                logger.debug(f"{len(successors)} successors for optimizers")
             else:
                 successors = list(
                     map(

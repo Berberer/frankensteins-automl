@@ -41,7 +41,7 @@ class SearchSpaceRestProblem(object):
         for interface in self.required_interfaces:
             if not interface["satisfied"]:
                 return False
-        logger.info("All interfaces satisfied in rest problem")
+        logger.debug("All interfaces satisfied in rest problem")
         return True
 
     def get_required_interfaces(self):
@@ -108,7 +108,7 @@ class SearchSpaceGraphGenerator(object):
 
     def generate_successors(self, node):
         if node.is_leaf_node():
-            logger.info("Node is a leaf node and has no successors")
+            logger.debug("Node is a leaf node and has no successors")
             return []
         rest_problem = node.get_rest_problem()
         interface = rest_problem.get_first_unsatisfied_required_interface()[
@@ -119,11 +119,11 @@ class SearchSpaceGraphGenerator(object):
         )
         successors = []
         for component in components:
-            logger.info(f"Generating a successor with {component.get_name()}")
+            logger.debug(f"Generating a successor with {component.get_name()}")
             successor_rp = SearchSpaceRestProblem.from_previous_rest_problem(
                 rest_problem, component
             )
             successors.append(SearchSpaceGraphNode(node, successor_rp))
         node.set_successors(successors)
-        logger.info(f"{len(successors)} successors for interface {interface}")
+        logger.debug(f"{len(successors)} successors for interface {interface}")
         return successors

@@ -32,7 +32,7 @@ class PipelineEvaluator:
                     cv=10,
                     error_score="raise",
                 ).mean()
-                logger.info(f"{pipeline} achieved : {score}")
+                logger.debug(f"{pipeline} achieved : {score}")
             else:
                 logger.warning("Constructed pipeline is None")
         except Exception as e:

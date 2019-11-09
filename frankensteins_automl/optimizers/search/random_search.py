@@ -22,12 +22,12 @@ class RandomSearch(AbstractOptimizer):
     def perform_optimization(self, optimization_time_budget):
         best_from_domain = self.parameter_domain.get_top_results(1)[0]
         self.best_score, self.best_candidate = best_from_domain
-        logger.info(f"Random Search starts with score: {self.best_score}")
+        logger.debug(f"Random Search starts with score: {self.best_score}")
         search_thread = Thread(target=self._search_loop)
         search_thread.start()
         search_thread.join(timeout=optimization_time_budget)
         self.stop_event.set()
-        logger.info(f"Random Search ends with score: {self.best_score}")
+        logger.debug(f"Random Search ends with score: {self.best_score}")
         return self.best_candidate, self.best_score
 
     def _search_loop(self):
@@ -37,11 +37,11 @@ class RandomSearch(AbstractOptimizer):
                 candidate
             )
             self.parameter_domain.add_result(candidate, candidate_score)
-            logger.info(
+            logger.debug(
                 f"Random search found a config with score: {candidate_score}"
             )
             if candidate_score > self.best_score:
-                logger.info(f"Replace old score: {self.best_score}")
+                logger.debug(f"Replace old score: {self.best_score}")
                 self.best_candidate = candidate
                 self.best_score = candidate_score
             if self.stop_event.is_set():
@@ -92,6 +92,6 @@ class RandomSearch(AbstractOptimizer):
                 new_value = False
             else:
                 new_value = True
-        logger.info(f"{changed_parameter}: {current_value}->{new_value}")
+        logger.debug(f"{changed_parameter}: {current_value}->{new_value}")
         candidate[changed_component][changed_parameter] = new_value
         return candidate

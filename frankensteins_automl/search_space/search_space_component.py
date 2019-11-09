@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 class SearchSpaceComponent(object):
     def __init__(self, description):
         self.name = description["name"]
-        logger.info(f"Create search space component {self.name}")
+        logger.debug(f"Create search space component {self.name}")
         self.provided_interfaces = []
         if "providedInterface" in description:
             self.provided_interfaces = description["providedInterface"]
@@ -23,7 +23,7 @@ class SearchSpaceComponent(object):
         self.params = {}
         if "parameter" in description:
             for p in description["parameter"]:
-                logger.info(f"Init param {p}")
+                logger.debug(f"Init param {p}")
                 param_domain = copy.deepcopy(p)
                 del param_domain["name"]
                 self.params[p["name"]] = param_domain
@@ -55,7 +55,7 @@ class SearchSpaceComponent(object):
             if "default" in domain:
                 config[name] = domain["default"]
             else:
-                logger.warn(f"Parameter {name} has no default value")
+                logger.warning(f"Parameter {name} has no default value")
                 config[name] = self._draw_random_parameter_value(domain)
         return config
 
@@ -76,28 +76,28 @@ class SearchSpaceComponent(object):
         elif param_type == "bool":
             return bool(random.getrandbits(1))
         else:
-            logger.warn(
+            logger.warning(
                 f"Unknown parameter type {param_type}, so returning None"
             )
             return None
 
     def validate_parameter_config(self, config):
-        logger.info(f"Validate param config of {self.name} with {config}")
+        logger.debug(f"Validate param config of {self.name} with {config}")
         # Check if config has as many members as parameters needed
         if len(config) != len(self.params):
-            logger.info("Not valid because config has wrong number of params")
+            logger.debug("Not valid because config has wrong number of params")
             return False
         # Check given values for each param
         for param, domain in self.params.items():
             # Check if the config has this param
             if param in config:
-                logger.info(f"Checking param {param}")
+                logger.debug(f"Checking param {param}")
                 param_type = domain["type"]
                 # Type is a category
                 if param_type == "cat":
                     # Check if the set value is one of the allowed categories
                     if config[param] not in domain["values"]:
-                        logger.info(
+                        logger.debug(
                             f"Not valid because {config[param]} is unknown"
                         )
                         return False
@@ -110,23 +110,23 @@ class SearchSpaceComponent(object):
                     value = config[param]
                     # Check if value is smaller than allowed minimum
                     if value < domain["min"]:
-                        logger.info("Not valid because value is too small")
+                        logger.debug("Not valid because value is too small")
                         return False
                     # Check if value is bigger than allowd maximum
                     if value > domain["max"]:
-                        logger.info("Not valid because value is too big")
+                        logger.debug("Not valid because value is too big")
                         return False
                     # If type is double, check if value is float
                     if param_type == "double":
                         if not isinstance(value, float):
-                            logger.info(
+                            logger.debug(
                                 "Not valid because a double was expected"
                             )
                             return False
                     # If type is int, check if the value is int
                     elif param_type == "int":
                         if not isinstance(value, int):
-                            logger.info(
+                            logger.debug(
                                 "Not valid because an int was expected"
                             )
                             return False
@@ -135,7 +135,7 @@ class SearchSpaceComponent(object):
                     logger.warning(f"Unknown param type {param_type}")
             # Config is missing a paramter and is not valid
             else:
-                logger.info(
+                logger.debug(
                     f"Not valid because config does not include {param}"
                 )
                 return False
@@ -156,7 +156,7 @@ class SearchSpaceComponent(object):
                     positional_args.insert(key, parameter_config[parameter])
         if required_interfaces is not None:
             for interface in self.required_interfaces:
-                logger.info(interface)
+                logger.debug(interface)
                 key = interface["construction_key"]
                 if isinstance(key, str):
                     keyword_args[key] = required_interfaces[interface["id"]]

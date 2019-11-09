@@ -100,7 +100,7 @@ class MctsSearch:
                 if successor.get_node_value() > best_score:
                     current_node = successor
                     best_score = successor.get_node_value()
-        logger.info(f"Nex candidate for expansion is {current_node}")
+        logger.debug(f"Nex candidate for expansion is {current_node}")
         return current_node
 
     def _candidate_node_expansion(self, candidate_node):
@@ -121,7 +121,7 @@ class MctsSearch:
                 len(expanded_nodes) * self.config.simulation_runs_amount
             )
         )
-        logger.info(f"Start random search simulations")
+        logger.debug(f"Start random search simulations")
         optimized_leafs = thread_pool.map(
             self._run_random_simulation, start_nodes
         )

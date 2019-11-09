@@ -29,7 +29,7 @@ class SearchSpaceComponentInstance(object):
             if len(interface_elements) != len(
                 self.component.get_required_interfaces()
             ):
-                logger.info(
+                logger.warning(
                     "Not valid because given interfaces have the wrong amount"
                 )
                 return False
@@ -39,7 +39,9 @@ class SearchSpaceComponentInstance(object):
                 interface_path = interface["name"]
                 # Check if the given interface elements have this interface
                 if interface_id not in interface_elements:
-                    logger.info(f"No interface provided for {interface_path}")
+                    logger.warning(
+                        f"No interface provided for {interface_path}"
+                    )
                     return False
                 interface_element_path = (
                     interface_elements[interface_id].__class__.__module__
@@ -52,10 +54,10 @@ class SearchSpaceComponentInstance(object):
                         + " was expected but got an element of type "
                         + interface_element_path
                     )
-                    logger.info(warning)
+                    logger.warning(warning)
                     # return False
             self.required_interfaces = interface_elements
-            logger.info(
+            logger.debug(
                 f"{self.component.get_name()} interfaces: {interface_elements}"
             )
         return True
@@ -88,11 +90,13 @@ class SearchSpaceComponentInstance(object):
             module = importlib.import_module(".".join(module_path))
             if self.component.is_function_pointer():
                 component_function = getattr(module, class_name)
-                logger.info(f"Resolved function pointer: {component_function}")
+                logger.warning(
+                    f"Resolved function pointer: {component_function}"
+                )
                 return component_function
             else:
                 component_constructor = getattr(module, class_name)
-                logger.info(f"Imported constructor: {component_constructor}")
+                logger.debug(f"Imported constructor: {component_constructor}")
                 return component_constructor(
                     *positional_parameter, **keyword_parameter
                 )

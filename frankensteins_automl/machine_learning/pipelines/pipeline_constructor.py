@@ -16,16 +16,16 @@ def construct_pipeline(start_component_name, rest_problem, parameter):
             return _assemble_component_instance(
                 component_id, component_mapping, required_interfaces, parameter
             )
-    logger.warn(f"No component found as start {start_component_name}")
+    logger.warning(f"No component found as start {start_component_name}")
     return None
 
 
 def _assemble_component_instance(
     component_id, component_mapping, required_interfaces, parameter
 ):
-    logger.info(f"Assembling {component_id}")
-    logger.info(f"Params for assembling: {parameter}")
-    logger.info(f"Components for assembling: {component_mapping}")
+    logger.debug(f"Assembling {component_id}")
+    logger.debug(f"Params for assembling: {parameter}")
+    logger.debug(f"Components for assembling: {component_mapping}")
     params = {}
     if component_id in parameter:
         params = parameter[component_id]
@@ -55,7 +55,7 @@ def _assemble_component_instance(
                     interface["interface"]["id"]
                 ] = created_element
             else:
-                logger.warn(
+                logger.warning(
                     f"No instance of {interface['name']} could be created"
                 )
         if not instance.set_required_interfaces(interface_instances):
