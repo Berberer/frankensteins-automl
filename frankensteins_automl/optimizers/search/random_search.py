@@ -13,10 +13,7 @@ class RandomSearch(AbstractOptimizer):
     def __init__(self, parameter_domain, pipeline_evaluator):
         super().__init__(parameter_domain, pipeline_evaluator)
         self.best_candidate = self.parameter_domain.get_default_config()
-        self.best_score = self.pipeline_evaluator.evaluate_pipeline(
-            self.best_candidate
-        )
-        self.parameter_domain.add_result(self.best_candidate, self.best_score)
+        self.best_score = self._score_candidate(self.best_candidate)
         self.stop_event = Event()
 
     def perform_optimization(self, optimization_time_budget):
@@ -33,10 +30,7 @@ class RandomSearch(AbstractOptimizer):
     def _search_loop(self):
         while True:
             candidate = self._next_step()
-            candidate_score = self.pipeline_evaluator.evaluate_pipeline(
-                candidate
-            )
-            self.parameter_domain.add_result(candidate, candidate_score)
+            candidate_score = self._score_candidate(candidate)
             logger.debug(
                 f"Random search found a config with score: {candidate_score}"
             )
@@ -73,7 +67,7 @@ class RandomSearch(AbstractOptimizer):
             upper_bound = new_value
             if (lower_bound - 0.1) >= param_description["min"]:
                 lower_bound = lower_bound - 0.1
-            if (upper_bound + 0.1) <= param_description["min"]:
+            if (upper_bound + 0.1) <= param_description["max"]:
                 upper_bound = upper_bound + 0.1
             new_value = random.uniform(lower_bound, upper_bound)
         elif param_description["type"] == "cat":

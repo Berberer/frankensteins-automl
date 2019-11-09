@@ -45,17 +45,25 @@ class TestEvaluator:
 
 class TestOptimizers:
     def test_optimization_result_improvements(self):
-        domain = OptimizationParameterDomain(component_mapping)
         for optimizer_class in optimizer_classes:
+            domain = OptimizationParameterDomain(component_mapping)
             optimizer = optimizer_class(domain, TestEvaluator())
             _, score = optimizer.perform_optimization(10)
-            print(score)
             assert score > -8.0
+
+    def test_optimizer_uses_warmstart(self):
+        existing_score = -2.4200000000000004
+        for optimizer_class in optimizer_classes:
+            domain = OptimizationParameterDomain(component_mapping)
+            domain.add_result({"vars": {"x": 1.1, "y": -1.1}}, existing_score)
+            optimizer = optimizer_class(domain, TestEvaluator())
+            _, score = optimizer.perform_optimization(0.1)
+            assert existing_score <= score
 
     def test_optimization_timeout(self):
         timeout_in_seconds = 5
-        domain = OptimizationParameterDomain(component_mapping)
         for optimizer_class in optimizer_classes:
+            domain = OptimizationParameterDomain(component_mapping)
             optimizer = optimizer_class(domain, TestEvaluator())
             start_time = process_time()
             optimizer.perform_optimization(timeout_in_seconds)

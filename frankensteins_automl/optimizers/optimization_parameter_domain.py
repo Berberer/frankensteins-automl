@@ -14,6 +14,7 @@ class OptimizationParameterDomain(object):
                 component_id
             ] = component.get_parameter_description()
         self.results = []
+        self.scores_mapping = {}
 
     def get_parameter_descriptions(self):
         return self.parameter_descriptions
@@ -31,11 +32,20 @@ class OptimizationParameterDomain(object):
         return config
 
     def add_result(self, config, score):
-        if (score, config) not in self.results:
-            heapq.heappush(self.results, (score, config))
+        flat_config = str(config)
+        if flat_config not in self.scores_mapping:
+            self.scores_mapping[flat_config] = score
+            if (score, config) not in self.results:
+                heapq.heappush(self.results, (score, config))
 
     def get_top_results(self, top_n):
         return heapq.nlargest(top_n, self.results)
+
+    def get_score_of_result(self, result):
+        flat_result = str(result)
+        if flat_result in self.scores_mapping:
+            return self.scores_mapping[flat_result]
+        return None
 
     def has_results(self):
         return len(self.results) > 0

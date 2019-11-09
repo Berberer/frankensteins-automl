@@ -148,3 +148,13 @@ class TestOptimizationParameterDomain:
             (12, {"abc": 123}),
             (3, {"def": 456}),
         ]
+
+    def test_duplicates_not_inserted(self):
+        domain = OptimizationParameterDomain(component_mapping)
+        domain.add_result({"abc": 123}, 12)
+        domain.add_result({"def": 456}, 3)
+        domain.add_result({"abc": 123}, 12)
+        assert domain.get_top_results(3) == [
+            (12, {"abc": 123}),
+            (3, {"def": 456}),
+        ]
