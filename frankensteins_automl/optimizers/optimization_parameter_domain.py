@@ -1,5 +1,6 @@
 import heapq
 import logging
+import uuid
 
 
 logger = logging.getLogger(__name__)
@@ -14,7 +15,9 @@ class OptimizationParameterDomain(object):
                 component_id
             ] = component.get_parameter_description()
         self.results = []
-        self.scores_mapping = {}
+        self.id_to_scores_mapping = {}
+        self.id_to_configuration_mapping = {}
+        self.configuration_string_to_id_mapping = {}
 
     def get_parameter_descriptions(self):
         return self.parameter_descriptions
@@ -32,19 +35,30 @@ class OptimizationParameterDomain(object):
         return config
 
     def add_result(self, config, score):
-        flat_config = str(config)
-        if flat_config not in self.scores_mapping:
-            self.scores_mapping[flat_config] = score
-            if (score, config) not in self.results:
-                heapq.heappush(self.results, (score, config))
+        config_str = str(config)
+        if config_str not in self.configuration_string_to_id_mapping:
+            config_id = str(uuid.uuid1())
+            self.configuration_string_to_id_mapping[config_str] = config_id
+            self.id_to_scores_mapping[config_id] = score
+            self.id_to_configuration_mapping[config_id] = config
+            heapq.heappush(self.results, (score, config_id))
 
     def get_top_results(self, top_n):
-        return heapq.nlargest(top_n, self.results)
+        results = heapq.nlargest(top_n, self.results)
+        result_configurations = []
+        for result in results:
+            result_configurations.append(
+                (result[0], self.id_to_configuration_mapping[result[1]])
+            )
+        return result_configurations
 
     def get_score_of_result(self, result):
-        flat_result = str(result)
-        if flat_result in self.scores_mapping:
-            return self.scores_mapping[flat_result]
+        result_str = str(result)
+        if result_str in self.configuration_string_to_id_mapping:
+            configuration_id = self.configuration_string_to_id_mapping[
+                result_str
+            ]
+            return self.id_to_scores_mapping[configuration_id]
         return None
 
     def has_results(self):

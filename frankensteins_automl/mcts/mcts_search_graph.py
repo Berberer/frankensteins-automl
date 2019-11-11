@@ -66,7 +66,7 @@ class MctsGraphNode(SearchSpaceGraphNode):
             (new_result - self.score_avg) / self.simulation_visits
         )
         exploration_factor = 0.0
-        if (
+        if (self.predecessor is not None) and (
             self.predecessor.get_simulation_visits() + 1
             > self.simulation_visits
         ):
@@ -77,9 +77,9 @@ class MctsGraphNode(SearchSpaceGraphNode):
         self.node_value = self.score_avg + exploration_factor
         pass
 
-    async def perform_optimization(self, time_budget):
+    def perform_optimization(self, time_budget):
         if self.optimizer is not None:
-            return await self.optimizer.perform_optimization(time_budget)
+            return self.optimizer.perform_optimization(time_budget)
         else:
             logger.warning("Node has not optimizer!")
 

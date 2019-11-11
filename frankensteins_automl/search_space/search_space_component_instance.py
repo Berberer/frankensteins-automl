@@ -54,7 +54,7 @@ class SearchSpaceComponentInstance(object):
                         + " was expected but got an element of type "
                         + interface_element_path
                     )
-                    logger.warning(warning)
+                    logger.debug(warning)
                     # return False
             self.required_interfaces = interface_elements
             logger.debug(

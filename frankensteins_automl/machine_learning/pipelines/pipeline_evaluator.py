@@ -1,4 +1,5 @@
 import logging
+import warnings
 from frankensteins_automl.machine_learning.pipelines import (
     pipeline_constructor,
 )
@@ -25,14 +26,18 @@ class PipelineEvaluator:
                 pipeline_parameter_config,
             )
             if pipeline is not None:
-                score = cross_val_score(
-                    pipeline,
-                    self.data_x,
-                    self.data_y,
-                    cv=10,
-                    error_score="raise",
-                ).mean()
-                logger.debug(f"{pipeline} achieved : {score}")
+                with warnings.catch_warnings(record=True) as w:
+                    warnings.simplefilter("always")
+                    score = cross_val_score(
+                        pipeline,
+                        self.data_x,
+                        self.data_y,
+                        cv=10,
+                        error_score="raise",
+                    ).mean()
+                    logger.debug(f"{pipeline} achieved : {score}")
+                    for warning in w:
+                        logger.debug(f"Pipeline evaluation warning: {warning}")
             else:
                 logger.warning("Constructed pipeline is None")
         except Exception as e:

@@ -1,4 +1,4 @@
-from time import process_time
+from time import perf_counter
 from frankensteins_automl.optimizers.optimization_parameter_domain import (
     OptimizationParameterDomain,
 )
@@ -65,8 +65,8 @@ class TestOptimizers:
         for optimizer_class in optimizer_classes:
             domain = OptimizationParameterDomain(component_mapping)
             optimizer = optimizer_class(domain, TestEvaluator())
-            start_time = process_time()
+            start_time = perf_counter()
             optimizer.perform_optimization(timeout_in_seconds)
-            stop_time = process_time()
+            stop_time = perf_counter()
             assert (stop_time - start_time) < (timeout_in_seconds + 1)
             assert (stop_time - start_time) > (timeout_in_seconds - 1)

@@ -55,9 +55,7 @@ def _assemble_component_instance(
                     interface["interface"]["id"]
                 ] = created_element
             else:
-                logger.warning(
-                    f"No instance of {interface['name']} could be created"
-                )
+                logger.warning(f"No instance of {interface} could be created")
         if not instance.set_required_interfaces(interface_instances):
             logger.error(
                 f"Created interfaces were invalid for {component.get_name()}"

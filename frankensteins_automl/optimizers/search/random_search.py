@@ -25,29 +25,28 @@ class RandomSearch(AbstractOptimizer):
         search_thread.join(timeout=optimization_time_budget)
         self.stop_event.set()
         logger.debug(f"Random Search ends with score: {self.best_score}")
-        return self.best_candidate, self.best_score
+        return copy.deepcopy(self.best_candidate), self.best_score
 
     def _search_loop(self):
         while True:
             candidate = self._next_step()
             candidate_score = self._score_candidate(candidate)
-            logger.debug(
-                f"Random search found a config with score: {candidate_score}"
-            )
             if candidate_score > self.best_score:
-                logger.debug(f"Replace old score: {self.best_score}")
                 self.best_candidate = candidate
                 self.best_score = candidate_score
             if self.stop_event.is_set():
+                logger.info("Stop event in random search")
                 break
 
     def _next_step(self):
         candidate = copy.deepcopy(self.best_candidate)
+        if len(candidate) == 0:
+            return candidate
         # Select a random parameter from a random component to change
-        changed_component = random.choice(list(candidate.keys()))
-        changed_parameter = random.choice(
-            list(candidate[changed_component].keys())
-        )
+        changed_component = random.choice(list(candidate))
+        if len(candidate[changed_component]) == 0:
+            return candidate
+        changed_parameter = random.choice(list(candidate[changed_component]))
         param_description = self.parameter_domain.get_parameter_descriptions()[
             changed_component
         ][changed_parameter]
@@ -71,21 +70,24 @@ class RandomSearch(AbstractOptimizer):
                 upper_bound = upper_bound + 0.1
             new_value = random.uniform(lower_bound, upper_bound)
         elif param_description["type"] == "cat":
-            # For a cat, select a neighbouring cat value
-            index = param_description["values"].index(new_value)
-            if index == 0:
-                new_value = param_description["values"][1]
-            elif index == (len(param_description["values"]) - 1):
-                new_value = param_description["values"][-2]
+            if len(param_description["values"]) == 1:
+                # If the cat has only one value, select this
+                new_value = param_description["values"][0]
             else:
-                new_index = index + random.choice([-1, 1])
-                new_value = param_description["values"][new_index]
+                # Otherwise, select a neighbouring cat value
+                index = param_description["values"].index(new_value)
+                if index == 0:
+                    new_value = param_description["values"][1]
+                elif index == (len(param_description["values"]) - 1):
+                    new_value = param_description["values"][-2]
+                else:
+                    new_index = index + random.choice([-1, 1])
+                    new_value = param_description["values"][new_index]
         elif param_description["type"] == "bool":
             # For a bool, select the opposite
             if new_value:
                 new_value = False
             else:
                 new_value = True
-        logger.debug(f"{changed_parameter}: {current_value}->{new_value}")
         candidate[changed_component][changed_parameter] = new_value
         return candidate
