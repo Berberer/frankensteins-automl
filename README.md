@@ -6,7 +6,7 @@ from frankensteins_automl.frankensteins_automl import (
     FrankensteinsAutoML,
 )
 
-config = FrankensteinsAutoMLConfig("<path/to/data/arff/file")
+config = FrankensteinsAutoMLConfig("<path/to/data/arff/file>")
 automl = FrankensteinsAutoML(config)
 pipeline, score = automl.run()
 ```
