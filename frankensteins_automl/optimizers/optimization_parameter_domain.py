@@ -63,3 +63,52 @@ class OptimizationParameterDomain(object):
 
     def has_results(self):
         return len(self.results) > 0
+
+    def config_to_vector(self, config):
+        vector = []
+        for component_id, component in self.component_mapping.items():
+            for (
+                parameter_id,
+                parameter,
+            ) in component.get_parameter_description().items():
+                parameter_type = parameter["type"]
+                value = config[component_id][parameter_id]
+                if parameter_type == "int":
+                    value = float(value)
+                elif parameter_type == "bool":
+                    if value:
+                        value = 1.0
+                    else:
+                        value = 0.0
+                elif parameter_type == "cat":
+                    value = float(parameter["values"].index(value))
+                vector.append(value)
+        return vector
+
+    def config_from_vector(self, vector):
+        config = {}
+        index = 0
+        for component_id, component in self.component_mapping.items():
+            config[component_id] = {}
+            for (
+                parameter_id,
+                parameter,
+            ) in component.get_parameter_description().items():
+                value = vector[index]
+                index = index + 1
+                parameter_type = parameter["type"]
+                if parameter_type == "int":
+                    value = int(value)
+                elif parameter_type == "bool":
+                    if value < 1.0:
+                        value = False
+                    else:
+                        value = True
+                elif parameter_type == "cat":
+                    if value < 0:
+                        value = 0
+                    if value >= len(parameter["values"]):
+                        value = len(parameter["values"] - 1)
+                    value = parameter["values"][int(value)]
+                config[component_id][parameter_id] = value
+        return config

@@ -158,3 +158,14 @@ class TestOptimizationParameterDomain:
             (12, {"abc": 123}),
             (3, {"def": 456}),
         ]
+
+    def test_config_vector_transformation(self):
+        domain = OptimizationParameterDomain(component_mapping)
+        config = {
+            "abc": {"testDouble": 0.53, "testInt": 6, "testCat": "a"},
+            "def": {"testCat": "a"},
+            "ghi": {},
+        }
+        vector = [0.53, 6.0, 0.0, 0.0]
+        assert domain.config_to_vector(config) == vector
+        assert domain.config_from_vector(vector) == config
