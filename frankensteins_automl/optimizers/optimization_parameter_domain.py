@@ -18,6 +18,28 @@ class OptimizationParameterDomain(object):
         self.id_to_scores_mapping = {}
         self.id_to_configuration_mapping = {}
         self.configuration_string_to_id_mapping = {}
+        self.min_vector, self.max_vector = (
+            self._calculate_min_and_max_vectors()
+        )
+
+    def _calculate_min_and_max_vectors(self):
+        min_vector = []
+        max_vector = []
+        for component in list(self.component_mapping.values()):
+            for parameter in list(
+                component.get_parameter_description().values()
+            ):
+                parameter_type = parameter["type"]
+                if parameter_type in ["int", "double"]:
+                    min_vector.append(float(parameter["min"]))
+                    max_vector.append(float(parameter["max"]))
+                elif parameter_type == "bool":
+                    min_vector.append(0.0)
+                    max_vector.append(2.0)
+                elif parameter_type == "cat":
+                    min_vector.append(0.0)
+                    max_vector.append(float(len(parameter["values"]) - 1))
+        return min_vector, max_vector
 
     def get_parameter_descriptions(self):
         return self.parameter_descriptions
@@ -65,32 +87,10 @@ class OptimizationParameterDomain(object):
         return len(self.results) > 0
 
     def get_min_vector(self):
-        vector = []
-        for component in list(self.component_mapping.values()):
-            for parameter in list(
-                component.get_parameter_description().values()
-            ):
-                parameter_type = parameter["type"]
-                if parameter_type in ["int", "double"]:
-                    vector.append(float(parameter["min"]))
-                elif parameter_type in ["cat", "bool"]:
-                    vector.append(0.0)
-        return vector
+        return self.min_vector
 
     def get_max_vector(self):
-        vector = []
-        for component in list(self.component_mapping.values()):
-            for parameter in list(
-                component.get_parameter_description().values()
-            ):
-                parameter_type = parameter["type"]
-                if parameter_type in ["int", "double"]:
-                    vector.append(float(parameter["max"]))
-                elif parameter_type == "bool":
-                    vector.append(2.0)
-                elif parameter_type == "cat":
-                    vector.append(float(len(parameter["values"]) - 1))
-        return vector
+        return self.max_vector
 
     def config_to_vector(self, config):
         vector = []
