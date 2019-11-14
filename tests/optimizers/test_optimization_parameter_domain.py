@@ -159,6 +159,14 @@ class TestOptimizationParameterDomain:
             (3, {"def": 456}),
         ]
 
+    def test_min_vector(self):
+        domain = OptimizationParameterDomain(component_mapping)
+        assert domain.get_min_vector() == [0.05, 1.0, 0.0, 0.0]
+
+    def test_max_vector(self):
+        domain = OptimizationParameterDomain(component_mapping)
+        assert domain.get_max_vector() == [1.01, 11.0, 2.0, 2.0]
+
     def test_config_vector_transformation(self):
         domain = OptimizationParameterDomain(component_mapping)
         config = {

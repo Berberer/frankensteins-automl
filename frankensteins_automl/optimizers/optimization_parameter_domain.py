@@ -64,6 +64,34 @@ class OptimizationParameterDomain(object):
     def has_results(self):
         return len(self.results) > 0
 
+    def get_min_vector(self):
+        vector = []
+        for component in list(self.component_mapping.values()):
+            for parameter in list(
+                component.get_parameter_description().values()
+            ):
+                parameter_type = parameter["type"]
+                if parameter_type in ["int", "double"]:
+                    vector.append(float(parameter["min"]))
+                elif parameter_type in ["cat", "bool"]:
+                    vector.append(0.0)
+        return vector
+
+    def get_max_vector(self):
+        vector = []
+        for component in list(self.component_mapping.values()):
+            for parameter in list(
+                component.get_parameter_description().values()
+            ):
+                parameter_type = parameter["type"]
+                if parameter_type in ["int", "double"]:
+                    vector.append(float(parameter["max"]))
+                elif parameter_type == "bool":
+                    vector.append(2.0)
+                elif parameter_type == "cat":
+                    vector.append(float(len(parameter["values"]) - 1))
+        return vector
+
     def config_to_vector(self, config):
         vector = []
         for component_id, component in self.component_mapping.items():
