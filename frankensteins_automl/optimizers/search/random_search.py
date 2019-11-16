@@ -1,5 +1,5 @@
-import copy
 import logging
+import numpy
 import random
 from threading import Thread, Event
 from frankensteins_automl.optimizers.abstract_optimizer import (
@@ -25,7 +25,10 @@ class RandomSearch(AbstractOptimizer):
         search_thread.join(timeout=optimization_time_budget)
         self.stop_event.set()
         logger.debug(f"Random Search ends with score: {self.best_score}")
-        return copy.deepcopy(self.best_candidate), self.best_score
+        return (
+            self.parameter_domain.config_from_vector(self.best_candidate),
+            self.best_score,
+        )
 
     def _search_loop(self):
         while True:
@@ -39,55 +42,11 @@ class RandomSearch(AbstractOptimizer):
                 break
 
     def _next_step(self):
-        candidate = copy.deepcopy(self.best_candidate)
+        candidate = numpy.copy(self.best_candidate)
         if len(candidate) == 0:
             return candidate
-        # Select a random parameter from a random component to change
-        changed_component = random.choice(list(candidate))
-        if len(candidate[changed_component]) == 0:
-            return candidate
-        changed_parameter = random.choice(list(candidate[changed_component]))
-        param_description = self.parameter_domain.get_parameter_descriptions()[
-            changed_component
-        ][changed_parameter]
-        current_value = candidate[changed_component][changed_parameter]
-        new_value = current_value
-        if param_description["type"] == "int":
-            # For an int, select a neighbouring int
-            if current_value == param_description["min"]:
-                new_value = new_value + 1
-            elif current_value == param_description["max"]:
-                new_value = new_value - 1
-            else:
-                new_value = new_value + random.choice([-1, 1])
-        elif param_description["type"] == "double":
-            # For a double d, select a value from [d-0.1, d+0.1]
-            lower_bound = new_value
-            upper_bound = new_value
-            if (lower_bound - 0.1) >= param_description["min"]:
-                lower_bound = lower_bound - 0.1
-            if (upper_bound + 0.1) <= param_description["max"]:
-                upper_bound = upper_bound + 0.1
-            new_value = random.uniform(lower_bound, upper_bound)
-        elif param_description["type"] == "cat":
-            if len(param_description["values"]) == 1:
-                # If the cat has only one value, select this
-                new_value = param_description["values"][0]
-            else:
-                # Otherwise, select a neighbouring cat value
-                index = param_description["values"].index(new_value)
-                if index == 0:
-                    new_value = param_description["values"][1]
-                elif index == (len(param_description["values"]) - 1):
-                    new_value = param_description["values"][-2]
-                else:
-                    new_index = index + random.choice([-1, 1])
-                    new_value = param_description["values"][new_index]
-        elif param_description["type"] == "bool":
-            # For a bool, select the opposite
-            if new_value:
-                new_value = False
-            else:
-                new_value = True
-        candidate[changed_component][changed_parameter] = new_value
+        index = random.randint(0, len(candidate) - 1)
+        lower_bound = max(self.min_vector[index], candidate[index] - 0.5)
+        upper_bound = min(self.max_vector[index], candidate[index] + 0.5)
+        candidate[index] = random.uniform(lower_bound, upper_bound)
         return candidate

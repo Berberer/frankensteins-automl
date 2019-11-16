@@ -1,5 +1,6 @@
 import heapq
 import logging
+import numpy
 import uuid
 
 
@@ -16,11 +17,12 @@ class OptimizationParameterDomain(object):
             ] = component.get_parameter_description()
         self.results = []
         self.id_to_scores_mapping = {}
-        self.id_to_configuration_mapping = {}
-        self.configuration_string_to_id_mapping = {}
-        self.min_vector, self.max_vector = (
-            self._calculate_min_and_max_vectors()
-        )
+        self.id_to_vector_mapping = {}
+        self.vector_string_to_id_mapping = {}
+        (
+            self.min_vector,
+            self.max_vector,
+        ) = self._calculate_min_and_max_vectors()
 
     def _calculate_min_and_max_vectors(self):
         min_vector = []
@@ -39,7 +41,7 @@ class OptimizationParameterDomain(object):
                 elif parameter_type == "cat":
                     min_vector.append(0.0)
                     max_vector.append(float(len(parameter["values"]) - 1))
-        return min_vector, max_vector
+        return numpy.array(min_vector), numpy.array(max_vector)
 
     def get_parameter_descriptions(self):
         return self.parameter_descriptions
@@ -48,39 +50,37 @@ class OptimizationParameterDomain(object):
         config = {}
         for component_id, component in self.component_mapping.items():
             config[component_id] = component.create_default_parameter_config()
-        return config
+        return self.config_to_vector(config)
 
     def draw_random_config(self):
         config = {}
         for component_id, component in self.component_mapping.items():
             config[component_id] = component.draw_random_parameter_config()
-        return config
+        return self.config_to_vector(config)
 
-    def add_result(self, config, score):
-        config_str = str(config)
-        if config_str not in self.configuration_string_to_id_mapping:
-            config_id = str(uuid.uuid1())
-            self.configuration_string_to_id_mapping[config_str] = config_id
-            self.id_to_scores_mapping[config_id] = score
-            self.id_to_configuration_mapping[config_id] = config
-            heapq.heappush(self.results, (score, config_id))
+    def add_result(self, vector, score):
+        vector_str = str(vector)
+        if vector_str not in self.vector_string_to_id_mapping:
+            vector_id = str(uuid.uuid1())
+            self.vector_string_to_id_mapping[vector_str] = vector_id
+            self.id_to_scores_mapping[vector_id] = score
+            self.id_to_vector_mapping[vector_id] = vector
+            heapq.heappush(self.results, (score, vector_id))
 
     def get_top_results(self, top_n):
         results = heapq.nlargest(top_n, self.results)
-        result_configurations = []
+        result_vectors = []
         for result in results:
-            result_configurations.append(
-                (result[0], self.id_to_configuration_mapping[result[1]])
+            result_vectors.append(
+                (result[0], self.id_to_vector_mapping[result[1]])
             )
-        return result_configurations
+        return result_vectors
 
     def get_score_of_result(self, result):
         result_str = str(result)
-        if result_str in self.configuration_string_to_id_mapping:
-            configuration_id = self.configuration_string_to_id_mapping[
-                result_str
-            ]
-            return self.id_to_scores_mapping[configuration_id]
+        if result_str in self.vector_string_to_id_mapping:
+            vector_id = self.vector_string_to_id_mapping[result_str]
+            return self.id_to_scores_mapping[vector_id]
         return None
 
     def has_results(self):
@@ -111,7 +111,7 @@ class OptimizationParameterDomain(object):
                 elif parameter_type == "cat":
                     value = float(parameter["values"].index(value))
                 vector.append(value)
-        return vector
+        return numpy.array(vector)
 
     def config_from_vector(self, vector):
         config = {}

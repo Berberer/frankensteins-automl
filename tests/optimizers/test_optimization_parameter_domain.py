@@ -1,3 +1,4 @@
+import numpy
 from frankensteins_automl.optimizers.optimization_parameter_domain import (
     OptimizationParameterDomain,
 )
@@ -83,22 +84,17 @@ component_mapping = {
 class TestOptimizationParameterDomain:
     def test_default_configuration(self):
         domain = OptimizationParameterDomain(component_mapping)
-        assert domain.get_default_config() == {
-            "abc": {"testDouble": 0.53, "testInt": 6, "testCat": "a"},
-            "def": {"testCat": "a"},
-            "ghi": {},
-        }
+        assert numpy.array_equal(
+            domain.get_default_config(), [0.53, 6.0, 0, 0]
+        )
 
     def test_random_configuration_completeness(self):
         domain = OptimizationParameterDomain(component_mapping)
         random_config = domain.draw_random_config()
-        assert "abc" in random_config
-        assert "testDouble" in random_config["abc"]
-        assert "testInt" in random_config["abc"]
-        assert "testCat" in random_config["abc"]
-        assert "def" in random_config
-        assert "testCat" in random_config["def"]
-        assert random_config["ghi"] == {}
+        assert random_config is not None
+        assert len(random_config) == 4
+        assert numpy.all(random_config >= domain.get_min_vector())
+        assert numpy.all(random_config <= domain.get_max_vector())
 
     def test_parameter_descriptions(self):
         domain = OptimizationParameterDomain(component_mapping)
@@ -138,34 +134,46 @@ class TestOptimizationParameterDomain:
     def test_queuing_order(self):
         domain = OptimizationParameterDomain(component_mapping)
         assert not domain.has_results()
-        domain.add_result({"abc": 123}, 12)
-        domain.add_result({"def": 456}, 3)
-        domain.add_result({"ghi": 789}, 42)
+        r1 = numpy.array([123.0])
+        r2 = numpy.array([456.0])
+        r3 = numpy.array([789.0])
+        domain.add_result(r1, 12)
+        domain.add_result(r2, 3)
+        domain.add_result(r3, 42)
         assert domain.has_results()
-        assert domain.get_top_results(1) == [(42, {"ghi": 789})]
-        assert domain.get_top_results(3) == [
-            (42, {"ghi": 789}),
-            (12, {"abc": 123}),
-            (3, {"def": 456}),
-        ]
+        top_score, top_candidate = domain.get_top_results(1)[0]
+        assert top_score == 42
+        assert numpy.array_equal(r3, top_candidate)
+        top_results = domain.get_top_results(3)
+        expected = [(42, r3), (12, r1), (3, r2)]
+        for i in range(3):
+            assert top_results[i][0] == expected[i][0]
+            assert numpy.array_equal(top_results[i][1], expected[i][1])
 
     def test_duplicates_not_inserted(self):
         domain = OptimizationParameterDomain(component_mapping)
-        domain.add_result({"abc": 123}, 12)
-        domain.add_result({"def": 456}, 3)
-        domain.add_result({"abc": 123}, 12)
-        assert domain.get_top_results(3) == [
-            (12, {"abc": 123}),
-            (3, {"def": 456}),
-        ]
+        r1 = numpy.array([123.0])
+        r2 = numpy.array([456.0])
+        domain.add_result(r1, 12)
+        domain.add_result(r2, 3)
+        domain.add_result(r2, 12)
+        top_results = domain.get_top_results(3)
+        expected = [(12, r1), (3, r2)]
+        for i in range(1):
+            assert top_results[i][0] == expected[i][0]
+            assert numpy.array_equal(top_results[i][1], expected[i][1])
 
     def test_min_vector(self):
         domain = OptimizationParameterDomain(component_mapping)
-        assert domain.get_min_vector() == [0.05, 1.0, 0.0, 0.0]
+        assert numpy.array_equal(
+            domain.get_min_vector(), [0.05, 1.0, 0.0, 0.0]
+        )
 
     def test_max_vector(self):
         domain = OptimizationParameterDomain(component_mapping)
-        assert domain.get_max_vector() == [1.01, 11.0, 2.0, 2.0]
+        assert numpy.array_equal(
+            domain.get_max_vector(), [1.01, 11.0, 2.0, 2.0]
+        )
 
     def test_config_vector_transformation(self):
         domain = OptimizationParameterDomain(component_mapping)
@@ -175,5 +183,5 @@ class TestOptimizationParameterDomain:
             "ghi": {},
         }
         vector = [0.53, 6.0, 0.0, 0.0]
-        assert domain.config_to_vector(config) == vector
+        assert numpy.array_equal(domain.config_to_vector(config), vector)
         assert domain.config_from_vector(vector) == config

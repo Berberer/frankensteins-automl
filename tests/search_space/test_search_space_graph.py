@@ -71,7 +71,9 @@ class TestSearchSpaceGraph:
             logger.info("Component mapping: ")
             cm = leaf.get_rest_problem().get_component_mapping()
             param_domain = OptimizationParameterDomain(cm)
-            default_params = param_domain.get_default_config()
+            default_params = param_domain.config_from_vector(
+                param_domain.get_default_config()
+            )
             for id, component in cm.items():
                 logger.info(f"\t{id}:{component.get_name()}")
             logger.info(f"\tParams: {default_params}")

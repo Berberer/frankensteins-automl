@@ -1,3 +1,4 @@
+import numpy
 from time import perf_counter
 from frankensteins_automl.optimizers.optimization_parameter_domain import (
     OptimizationParameterDomain,
@@ -55,7 +56,7 @@ class TestOptimizers:
         existing_score = -2.4200000000000004
         for optimizer_class in optimizer_classes:
             domain = OptimizationParameterDomain(component_mapping)
-            domain.add_result({"vars": {"x": 1.1, "y": -1.1}}, existing_score)
+            domain.add_result(numpy.array([1.1, -1.1]), existing_score)
             optimizer = optimizer_class(domain, TestEvaluator())
             _, score = optimizer.perform_optimization(0.1)
             assert existing_score <= score
