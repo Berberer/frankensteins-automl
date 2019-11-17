@@ -4,7 +4,7 @@ import uuid
 from pathos.multiprocessing import ProcessingPool
 from threading import Thread, Event
 from frankensteins_automl.mcts.mcts_search_graph import MctsGraphGenerator
-from frankensteins_automl.machine_learning.pipelines import (
+from frankensteins_automl.machine_learning.pipeline import (
     pipeline_constructor,
     pipeline_evaluator,
 )
@@ -49,6 +49,7 @@ class MctsSearchConfig:
     def __init__(self, data_x, data_y):
         self.search_timeout = 600
         self.optimization_time_budget = 30
+        self.timeout_for_pipeline_evaluation = 10.0
         self.pipeline_evaluator_class = pipeline_evaluator.PipelineEvaluator
         self.search_space_files = [
             "res/search_space/ml-plan-ul.json",
@@ -72,6 +73,7 @@ class MctsSearch:
             self.config.start_component_name,
             optimizers,
             self.config.pipeline_evaluator_class,
+            self.config.timeout_for_pipeline_evaluation,
             self.config.data_x,
             self.config.data_y,
         )

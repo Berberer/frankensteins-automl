@@ -1,8 +1,7 @@
 import logging
+import stopit
 import warnings
-from frankensteins_automl.machine_learning.pipelines import (
-    pipeline_constructor,
-)
+from frankensteins_automl.machine_learning.pipeline import pipeline_constructor
 from sklearn.model_selection import cross_val_score
 
 logger = logging.getLogger(__name__)
@@ -17,6 +16,7 @@ class PipelineEvaluator:
         self.start_component_name = start_component_name
         self.rest_problem = satisfied_rest_problem
 
+    @stopit.threading_timeoutable(default=0.0)
     def evaluate_pipeline(self, pipeline_parameter_config):
         score = 0.0
         try:

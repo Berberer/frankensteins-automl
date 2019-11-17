@@ -91,6 +91,7 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
         initial_component_name,
         optimizer_classes,
         pipeline_evaluator_class,
+        timeout_for_pipeline_evaluation,
         data_x,
         data_y,
     ):
@@ -98,6 +99,7 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
         self.initial_component_name = initial_component_name
         self.optimizer_constructors = []
         self.pipeline_evaluator_class = pipeline_evaluator_class
+        self.timeout_for_pipeline_evaluation = timeout_for_pipeline_evaluation
         self.data_x = data_x
         self.data_y = data_y
         self.optimizer_classes = optimizer_classes
@@ -121,7 +123,9 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
                         node.get_rest_problem(),
                     )
                     optimizer = optimizer_class(
-                        node.get_parameter_domain(), pipeline_evaluator
+                        node.get_parameter_domain(),
+                        pipeline_evaluator,
+                        self.timeout_for_pipeline_evaluation,
                     )
                     successors.append(
                         MctsGraphNode(node, node.get_rest_problem(), optimizer)

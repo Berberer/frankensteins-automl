@@ -26,6 +26,7 @@ def _assemble_component_instance(
     logger.debug(f"Assembling {component_id}")
     logger.debug(f"Params for assembling: {parameter}")
     logger.debug(f"Components for assembling: {component_mapping}")
+    logger.debug(f"Required interfaces for assembling: {required_interfaces}")
     params = {}
     if component_id in parameter:
         params = parameter[component_id]

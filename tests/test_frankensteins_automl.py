@@ -10,7 +10,7 @@ class TestFrankensteinsAutoMl:
         timeout_in_seconds = 60.0
         tolerance = timeout_in_seconds * 0.1
         config = FrankensteinsAutoMLConfig(
-            "res/datasets/blood_transfusion.arff"
+            "res/datasets/blood_transfusion.arff", 4
         )
         config.timeout_in_seconds = timeout_in_seconds
         config.timout_for_optimizers_in_seconds = 10.0

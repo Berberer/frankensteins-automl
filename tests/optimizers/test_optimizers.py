@@ -1,4 +1,5 @@
 import numpy
+import stopit
 from time import perf_counter
 from frankensteins_automl.optimizers.optimization_parameter_domain import (
     OptimizationParameterDomain,
@@ -40,6 +41,7 @@ optimizer_classes = [RandomSearch]
 
 
 class TestEvaluator:
+    @stopit.threading_timeoutable(default=0.0)
     def evaluate_pipeline(self, params):
         return -(params["vars"]["x"]) ** 2 - (params["vars"]["y"]) ** 2
 
@@ -48,7 +50,7 @@ class TestOptimizers:
     def test_optimization_result_improvements(self):
         for optimizer_class in optimizer_classes:
             domain = OptimizationParameterDomain(component_mapping)
-            optimizer = optimizer_class(domain, TestEvaluator())
+            optimizer = optimizer_class(domain, TestEvaluator(), 10.0)
             _, score = optimizer.perform_optimization(10)
             assert score > -8.0
 
@@ -57,7 +59,7 @@ class TestOptimizers:
         for optimizer_class in optimizer_classes:
             domain = OptimizationParameterDomain(component_mapping)
             domain.add_result(numpy.array([1.1, -1.1]), existing_score)
-            optimizer = optimizer_class(domain, TestEvaluator())
+            optimizer = optimizer_class(domain, TestEvaluator(), 10.0)
             _, score = optimizer.perform_optimization(0.1)
             assert existing_score <= score
 
@@ -65,7 +67,7 @@ class TestOptimizers:
         timeout_in_seconds = 5
         for optimizer_class in optimizer_classes:
             domain = OptimizationParameterDomain(component_mapping)
-            optimizer = optimizer_class(domain, TestEvaluator())
+            optimizer = optimizer_class(domain, TestEvaluator(), 10.0)
             start_time = perf_counter()
             optimizer.perform_optimization(timeout_in_seconds)
             stop_time = perf_counter()

@@ -10,8 +10,17 @@ logger = logging.getLogger(__name__)
 
 
 class RandomSearch(AbstractOptimizer):
-    def __init__(self, parameter_domain, pipeline_evaluator):
-        super().__init__(parameter_domain, pipeline_evaluator)
+    def __init__(
+        self,
+        parameter_domain,
+        pipeline_evaluator,
+        timeout_for_pipeline_evaluation,
+    ):
+        super().__init__(
+            parameter_domain,
+            pipeline_evaluator,
+            timeout_for_pipeline_evaluation,
+        )
         self.best_candidate = self.parameter_domain.get_default_config()
         self.best_score = self._score_candidate(self.best_candidate)
         self.stop_event = Event()

@@ -1,8 +1,8 @@
-import arff
 import json
 import numpy
 import logging
-from frankensteins_automl.machine_learning.pipelines import (
+from frankensteins_automl.machine_learning.arff_reader import read_arff
+from frankensteins_automl.machine_learning.pipeline import (
     pipeline_evaluator,
     pipeline_constructor,
 )
@@ -61,12 +61,7 @@ class TestSearchSpaceGraph:
         assert len(leaf_nodes) > 0
 
     def test_leaf_node_pipeline_creation(self):
-        data = numpy.array(
-            arff.load(open("res/datasets/blood_transfusion.arff", "r"))["data"]
-        )
-        data = data.astype(numpy.float64)
-        data_x = data[:, :4]
-        data_y = data[:, 4]
+        data_x, data_y = read_arff("res/datasets/blood_transfusion.arff", 4)
         for leaf in leaf_nodes:
             logger.info("Component mapping: ")
             cm = leaf.get_rest_problem().get_component_mapping()
@@ -91,7 +86,7 @@ class TestSearchSpaceGraph:
             assert pipeline is not None
             assert isinstance(pipeline, Pipeline)
             try:
-                score = evaluator.evaluate_pipeline(default_params)
+                score = evaluator.evaluate_pipeline(default_params, timeout=30)
                 logger.info(f"\tScore: {score}")
                 assert score > 0.5
                 logger.info("################################")

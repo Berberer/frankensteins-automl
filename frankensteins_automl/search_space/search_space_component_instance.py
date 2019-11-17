@@ -57,7 +57,7 @@ class SearchSpaceComponentInstance(object):
                     logger.debug(warning)
                     # return False
             self.required_interfaces = interface_elements
-            logger.debug(
+            logger.info(
                 f"{self.component.get_name()} interfaces: {interface_elements}"
             )
         return True
