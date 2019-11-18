@@ -1,5 +1,6 @@
 import logging
 import numpy
+import random
 from abc import ABC, abstractmethod
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,14 @@ class AbstractOptimizer(ABC):
             )
             self.parameter_domain.add_result(candidate, score)
         return score
+
+    def _random_transform_candidate(self, candidate, number_of_changes):
+        indices = random.sample(range((len(candidate))), number_of_changes)
+        for index in indices:
+            lower_bound = max(self.min_vector[index], candidate[index] - 0.5)
+            upper_bound = min(self.max_vector[index], candidate[index] + 0.5)
+            candidate[index] = random.uniform(lower_bound, upper_bound)
+        return candidate
 
     @abstractmethod
     def perform_optimization(self, optimization_time_budget):

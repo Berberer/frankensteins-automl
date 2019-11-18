@@ -1,6 +1,5 @@
 import logging
 import numpy
-import random
 from threading import Thread, Event
 from frankensteins_automl.optimizers.abstract_optimizer import (
     AbstractOptimizer,
@@ -54,8 +53,5 @@ class RandomSearch(AbstractOptimizer):
         candidate = numpy.copy(self.best_candidate)
         if len(candidate) == 0:
             return candidate
-        index = random.randint(0, len(candidate) - 1)
-        lower_bound = max(self.min_vector[index], candidate[index] - 0.5)
-        upper_bound = min(self.max_vector[index], candidate[index] + 0.5)
-        candidate[index] = random.uniform(lower_bound, upper_bound)
+        self._random_transform_candidate(candidate, 1)
         return candidate

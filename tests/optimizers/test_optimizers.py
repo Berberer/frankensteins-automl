@@ -4,6 +4,9 @@ from time import perf_counter
 from frankensteins_automl.optimizers.optimization_parameter_domain import (
     OptimizationParameterDomain,
 )
+from frankensteins_automl.optimizers.evolution.genetic_algorithm import (
+    GeneticAlgorithm,
+)
 from frankensteins_automl.optimizers.search.random_search import RandomSearch
 from frankensteins_automl.search_space.search_space_component import (
     SearchSpaceComponent,
@@ -37,7 +40,7 @@ component_mapping = {
     )
 }
 
-optimizer_classes = [RandomSearch]
+optimizer_classes = [GeneticAlgorithm, RandomSearch]
 
 
 class TestEvaluator:
