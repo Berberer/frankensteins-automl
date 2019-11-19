@@ -2,6 +2,9 @@ import logging
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from frankensteins_automl.machine_learning.arff_reader import read_arff
+from frankensteins_automl.optimizers.evolution.genetic_algorithm import (
+    GeneticAlgorithm,
+)
 from frankensteins_automl.optimizers.search.random_search import RandomSearch
 from frankensteins_automl.mcts.mcts_search import MctsSearchConfig, MctsSearch
 
@@ -17,7 +20,7 @@ class FrankensteinsAutoMLConfig:
         self.timout_for_optimizers_in_seconds = 30.0
         self.timeout_for_pipeline_evaluation = 10.0
         self.simulation_runs_amount = 1
-        self.optimizers = [RandomSearch]
+        self.optimizers = [GeneticAlgorithm, RandomSearch]
 
 
 class FrankensteinsAutoML:
