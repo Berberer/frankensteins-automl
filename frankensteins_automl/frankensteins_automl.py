@@ -40,14 +40,19 @@ class FrankensteinsAutoML:
             search = self._construct_search(search_data)
             logger.debug("Start search")
             pipeline, search_score = search.run_search()
-            logger.debug(f"Best pipeline: {pipeline}")
-            logger.debug(f"Score of best pipeline: {search_score}")
-            logger.debug("Validate best pipeline")
-            pipeline.fit(search_data[0], search_data[1])
-            predictions = pipeline.predict(validation_data[0])
-            score = accuracy_score(predictions, validation_data[1])
-            logger.debug(f"Validation score of best pipeline: {score}")
-            return pipeline, score
+            if pipeline is None:
+                logger.warning("Was not able to find a valid pipeline in time")
+                logger.warning("Please increase the given timeout")
+                return None, 0.0
+            else:
+                logger.debug(f"Best pipeline: {pipeline}")
+                logger.debug(f"Score of best pipeline: {search_score}")
+                logger.debug("Validate best pipeline")
+                pipeline.fit(search_data[0], search_data[1])
+                predictions = pipeline.predict(validation_data[0])
+                score = accuracy_score(predictions, validation_data[1])
+                logger.debug(f"Validation score of best pipeline: {score}")
+                return pipeline, score
 
     def _load_data(self):
         data_x, data_y = read_arff(

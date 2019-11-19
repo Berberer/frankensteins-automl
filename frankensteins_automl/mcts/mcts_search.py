@@ -81,6 +81,7 @@ class MctsSearch:
         self.best_candidate = None
         self.best_score = 0.0
         self.stop_event = Event()
+        self.thread_pool = ProcessingPool()
 
     def run_search(self):
         try:
@@ -157,11 +158,16 @@ class MctsSearch:
 
         start_nodes = expanded_nodes * self.config.simulation_runs_amount
         logger.debug(f"Starting simulations at: {start_nodes}")
-        thread_pool = ProcessingPool()
         logger.debug(f"Start random search simulations")
-        optimized_leafs = thread_pool.map(
+        self.thread_pool.restart()
+        optimized_leafs_future = self.thread_pool.amap(
             _run_random_search_simulation, start_nodes
         )
+        optimized_leafs = optimized_leafs_future.get(
+            timeout=self.config.optimization_time_budget * 1.5
+        )
+        self.thread_pool.terminate()
+        self.thread_pool.clear()
         logger.debug("Simulation threads mapped")
         return optimized_leafs
 

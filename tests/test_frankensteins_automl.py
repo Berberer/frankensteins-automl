@@ -7,13 +7,14 @@ from frankensteins_automl.frankensteins_automl import (
 
 class TestFrankensteinsAutoMl:
     def test_stop_after_short_timeout(self):
-        timeout_in_seconds = 60.0
+        timeout_in_seconds = 90.0
         tolerance = timeout_in_seconds * 0.1
         config = FrankensteinsAutoMLConfig(
             "res/datasets/blood_transfusion.arff", 4
         )
         config.timeout_in_seconds = timeout_in_seconds
-        config.timout_for_optimizers_in_seconds = 10.0
+        config.timout_for_optimizers_in_seconds = 30
+        config.timeout_for_pipeline_evaluation = 10.0
         automl = FrankensteinsAutoML(config)
         start_time = perf_counter()
         candidate, score = automl.run()
