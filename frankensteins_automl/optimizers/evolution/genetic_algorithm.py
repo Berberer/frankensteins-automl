@@ -129,8 +129,11 @@ class GeneticAlgorithm(AbstractOptimizer):
     def _one_point_crossover(self, individual_1, individual_2):
         new_individual_1 = numpy.copy(individual_1)
         new_individual_2 = numpy.copy(individual_1)
-        crossover_point = random.randint(0, len(individual_1) - 1)
-        for i in range(crossover_point, len(individual_1) - 1):
-            new_individual_1[i] = individual_2[i]
-            new_individual_2[i] = individual_1[i]
+        # Just perform a crossover if the vectors long enough
+        # Return the unchanged individuals otherwise
+        if (len(individual_1) - 1) > 1:
+            crossover_point = random.randint(0, len(individual_1) - 1)
+            for i in range(crossover_point, len(individual_1) - 1):
+                new_individual_1[i] = individual_2[i]
+                new_individual_2[i] = individual_1[i]
         return new_individual_1, new_individual_2
