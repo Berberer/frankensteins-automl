@@ -1,6 +1,8 @@
 import logging
 import math
 import uuid
+from pubsub import pub
+from frankensteins_automl.event_listener import event_topics
 from frankensteins_automl.optimizers.optimization_parameter_domain import (
     OptimizationParameterDomain,
 )
@@ -10,6 +12,8 @@ from frankensteins_automl.search_space.search_space_graph import (
 )
 
 logger = logging.getLogger(__name__)
+
+topic = event_topics.SEARCH_GRAPH_TOPIC
 
 
 class MctsGraphNode(SearchSpaceGraphNode):
@@ -60,6 +64,11 @@ class MctsGraphNode(SearchSpaceGraphNode):
     def get_parameter_domain(self):
         return self.parameter_domain
 
+    def get_event_payload(self):
+        payload = super().get_event_payload()
+        payload["optimization_leaf"] = self.is_leaf_node()
+        return payload
+
     def recalculate_node_value(self, new_result):
         self.simulation_visits = self.simulation_visits + 1
         self.score_avg = self.score_avg + (
@@ -96,7 +105,6 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
         data_y,
     ):
         super().__init__(search_space, initial_component_name)
-        self.initial_component_name = initial_component_name
         self.optimizer_constructors = []
         self.pipeline_evaluator_class = pipeline_evaluator_class
         self.timeout_for_pipeline_evaluation = timeout_for_pipeline_evaluation
@@ -106,6 +114,10 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
         self.root_node = MctsGraphNode(
             None, self.root_node.get_rest_problem(), None
         )
+        # Send event for new root node
+        root_node_payload = self.root_node.get_event_payload()
+        root_node_payload["event_type"] = "NEW_NODE"
+        pub.sendMessage(topic, payload=root_node_payload)
 
     def generate_successors(self, node):
         if node.is_leaf_node():
@@ -140,5 +152,10 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
                         super().generate_successors(node),
                     )
                 )
+            # Send event for new successor node
+            for successor in successors:
+                new_node_payload = successor.get_event_payload()
+                new_node_payload["event_type"] = "NEW_NODE"
+                pub.sendMessage(topic, payload=new_node_payload)
             node.set_successors(successors)
             return successors

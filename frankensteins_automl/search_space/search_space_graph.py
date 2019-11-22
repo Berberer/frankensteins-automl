@@ -1,9 +1,12 @@
 import copy
 import logging
 import uuid
+from frankensteins_automl.event_listener import event_topics
 
 
 logger = logging.getLogger(__name__)
+
+topic = event_topics.SEARCH_GRAPH_TOPIC
 
 
 class SearchSpaceRestProblem(object):
@@ -62,6 +65,10 @@ class SearchSpaceGraphNode(object):
         self.predecessor = predecessor
         self.successors = []
         self.rest_problem = rest_problem
+        self.node_id = str(uuid.uuid1())
+
+    def get_node_id(self):
+        return self.node_id
 
     def get_predecessor(self):
         return self.predecessor
@@ -78,12 +85,19 @@ class SearchSpaceGraphNode(object):
     def is_leaf_node(self):
         return self.rest_problem.is_satisfied()
 
+    def get_event_payload(self):
+        predecessor_id = None
+        if self.get_predecessor() is not None:
+            predecessor_id = self.predecessor.get_node_id()
+        return {"id": self.node_id, "predecessor": predecessor_id}
+
 
 class SearchSpaceGraphGenerator(object):
     def __init__(self, search_space, initial_component_name):
         self.search_space = search_space
+        self.initial_component_name = initial_component_name
         root_component = self.search_space.get_component_by_name(
-            initial_component_name
+            self.initial_component_name
         )
         root_component_id = str(uuid.uuid1())
         unsatisfied_interfaces = []

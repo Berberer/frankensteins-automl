@@ -3,6 +3,7 @@ import random
 import uuid
 from pathos.multiprocessing import ProcessingPool
 from threading import Thread, Event
+from frankensteins_automl.event_listener import event_topics
 from frankensteins_automl.mcts.mcts_search_graph import MctsGraphGenerator
 from frankensteins_automl.machine_learning.pipeline import (
     pipeline_constructor,
@@ -13,6 +14,8 @@ from frankensteins_automl.search_space.search_space_reader import (
 )
 
 logger = logging.getLogger(__name__)
+
+topic = event_topics.MCTS_TOPIC
 
 
 class RandomSearchSimulation:
