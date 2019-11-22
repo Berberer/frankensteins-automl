@@ -29,6 +29,7 @@ class AbstractOptimizer(ABC):
         return score
 
     def _random_transform_candidate(self, candidate, number_of_changes):
+        number_of_changes = min(len(candidate), number_of_changes)
         indices = random.sample(range((len(candidate))), number_of_changes)
         for index in indices:
             lower_bound = max(self.min_vector[index], candidate[index] - 0.5)
