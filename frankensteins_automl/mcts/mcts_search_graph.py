@@ -1,6 +1,5 @@
 import logging
 import math
-import uuid
 from pubsub import pub
 from frankensteins_automl.event_listener import event_topics
 from frankensteins_automl.optimizers.optimization_parameter_domain import (
@@ -32,7 +31,6 @@ class MctsGraphNode(SearchSpaceGraphNode):
         self.node_value = 0.0
         self.simulation_visits = 0
         self.score_avg = 0.0
-        self.leaf_id = None
 
     def is_search_space_leaf_node(self):
         return super().is_leaf_node()
@@ -51,12 +49,6 @@ class MctsGraphNode(SearchSpaceGraphNode):
 
     def get_simulation_visits(self):
         return self.simulation_visits
-
-    def get_leaf_id(self):
-        return self.leaf_id
-
-    def set_leaf_id(self, leaf_id):
-        self.leaf_id = leaf_id
 
     def get_optimizer(self):
         return self.optimizer
@@ -125,8 +117,6 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
         else:
             successors = []
             if node.is_search_space_leaf_node():
-                leaf_id = str(uuid.uuid1())
-                node.set_leaf_id(leaf_id)
                 for optimizer_class in self.optimizer_classes:
                     pipeline_evaluator = self.pipeline_evaluator_class(
                         self.data_x,
