@@ -124,6 +124,8 @@ class SearchSpaceGraphGenerator(object):
         if node.is_leaf_node():
             logger.debug("Node is a leaf node and has no successors")
             return []
+        if node.get_successors() != []:
+            return node.get_successors()
         rest_problem = node.get_rest_problem()
         interface = rest_problem.get_first_unsatisfied_required_interface()[
             "name"

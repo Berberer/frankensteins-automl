@@ -1,7 +1,6 @@
 black==19.3b0
 liac-arff==2.4.0
 numpy==1.17.3
-pathos==0.2.5
 pre-commit==1.18.3
 pypubsub==4.0.3
 requests2==2.16.0

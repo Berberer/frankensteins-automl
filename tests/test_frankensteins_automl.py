@@ -13,7 +13,7 @@ class TestFrankensteinsAutoMl:
             "res/datasets/blood_transfusion.arff", 4
         )
         config.timeout_in_seconds = timeout_in_seconds
-        config.timout_for_optimizers_in_seconds = 30
+        config.timout_for_optimizers_in_seconds = 30.0
         config.timeout_for_pipeline_evaluation = 10.0
         automl = FrankensteinsAutoML(config)
         start_time = perf_counter()
