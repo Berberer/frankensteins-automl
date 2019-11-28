@@ -26,10 +26,19 @@ export default new Vuex.Store({
         });
         if (event.predecessor) {
           state.edges.add({
+            id: event.predecessor + event.id,
             from: event.predecessor,
             to: event.id,
+            value: 1,
           });
         }
+      } else if (event.event_type === 'WEIGHT_UPDATE') {
+        state.edges.update({
+          id: event.predecessor + event.id,
+          from: event.from,
+          to: event.to,
+          value: event.weight * 10,
+        });
       }
     },
   },

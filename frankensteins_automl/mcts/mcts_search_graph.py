@@ -62,10 +62,15 @@ class MctsGraphNode(SearchSpaceGraphNode):
         return payload
 
     def recalculate_node_value(self, new_result):
+        logger.debug(
+            f"Update {self.node_id} from {self.node_value} with {new_result}"
+        )
         self.simulation_visits = self.simulation_visits + 1
+        logger.debug(f"Number of visits: {self.simulation_visits}")
         self.score_avg = self.score_avg + (
             (new_result - self.score_avg) / self.simulation_visits
         )
+        logger.debug(f"Score Avg: {self.score_avg}")
         exploration_factor = 0.0
         if (self.predecessor is not None) and (
             self.predecessor.get_simulation_visits() + 1
@@ -75,7 +80,19 @@ class MctsGraphNode(SearchSpaceGraphNode):
                 math.log(float(self.predecessor.get_simulation_visits() + 1))
                 / float(self.simulation_visits)
             )
+            logger.debug(f"Exploration factor: {exploration_factor}")
         self.node_value = self.score_avg + exploration_factor
+        logger.debug(f"New node value: {self.node_value}")
+        if self.predecessor is not None:
+            pub.sendMessage(
+                topic,
+                payload={
+                    "event_type": "WEIGHT_UPDATE",
+                    "from": self.predecessor.get_node_id(),
+                    "to": self.get_node_id(),
+                    "weight": self.node_value,
+                },
+            )
         pass
 
     def perform_optimization(self, time_budget):
