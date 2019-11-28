@@ -17,4 +17,4 @@ pipeline, score = automl.run()
 config.event_send_url = "http://localhost:3000/event"
 ```
 2. Run `yarn install` inside of the `search_visualization/` folder
-3. Run `yarn electron:serve` inside of the `search_visualization/` fodler **before** you start frankensteins-automl
+3. Run `yarn electron:serve` inside of the `search_visualization/` folder **before** you start frankensteins-automl
