@@ -12,7 +12,9 @@ export default {
   name: 'Dashboard',
   components: {},
   data() {
-    return {};
+    return {
+      network: null,
+    };
   },
   computed: {
     ...mapGetters([
@@ -23,10 +25,25 @@ export default {
   methods: {
   },
   mounted() {
+    // eslint-disable-next-line
     const network = new Network(
       document.getElementById('graph-view'),
       { nodes: this.nodes, edges: this.edges },
-      {},
+      {
+        nodes: {
+          font: { color: 'white', size: 7 },
+        },
+        edges: {
+          color: 'grey',
+          font: {
+            align: 'bottom',
+            size: 7,
+          },
+        },
+        layout: {
+          improvedLayout: false,
+        },
+      },
     );
   },
 };

@@ -16,8 +16,10 @@ topic = event_topics.SEARCH_GRAPH_TOPIC
 
 
 class MctsGraphNode(SearchSpaceGraphNode):
-    def __init__(self, predecessor, rest_problem, optimizer):
-        super().__init__(predecessor, rest_problem)
+    def __init__(
+        self, predecessor, rest_problem, specified_interface, optimizer
+    ):
+        super().__init__(predecessor, rest_problem, specified_interface)
         self.optimizer = optimizer
         self.parameter_domain = None
         if (
@@ -31,6 +33,7 @@ class MctsGraphNode(SearchSpaceGraphNode):
         self.node_value = 0.0
         self.simulation_visits = 0
         self.score_avg = 0.0
+        self.best_optimization_value = 0.0
 
     def is_search_space_leaf_node(self):
         return super().is_leaf_node()
@@ -55,11 +58,6 @@ class MctsGraphNode(SearchSpaceGraphNode):
 
     def get_parameter_domain(self):
         return self.parameter_domain
-
-    def get_event_payload(self):
-        payload = super().get_event_payload()
-        payload["optimization_leaf"] = self.is_leaf_node()
-        return payload
 
     def recalculate_node_value(self, new_result):
         logger.debug(
@@ -97,7 +95,18 @@ class MctsGraphNode(SearchSpaceGraphNode):
 
     def perform_optimization(self, time_budget):
         if self.optimizer is not None:
-            return self.optimizer.perform_optimization(time_budget)
+            config, score = self.optimizer.perform_optimization(time_budget)
+            if score > self.best_optimization_value:
+                self.best_optimization_value = score
+                pub.sendMessage(
+                    topic,
+                    payload={
+                        "event_type": "OPTIMIZER_UPDATE",
+                        "id": self.node_id,
+                        "score": score,
+                    },
+                )
+            return config, score
         else:
             logger.warning("Node has not optimizer!")
 
@@ -121,11 +130,12 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
         self.data_y = data_y
         self.optimizer_classes = optimizer_classes
         self.root_node = MctsGraphNode(
-            None, self.root_node.get_rest_problem(), None
+            None, self.root_node.get_rest_problem(), None, None
         )
         # Send event for new root node
         root_node_payload = self.root_node.get_event_payload()
         root_node_payload["event_type"] = "NEW_NODE"
+        root_node_payload["node_type"] = "root"
         pub.sendMessage(topic, payload=root_node_payload)
 
     def generate_successors(self, node):
@@ -133,8 +143,10 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
             return []
         else:
             successors = []
+            node_type = "inner"
             if node.is_search_space_leaf_node():
                 for optimizer_class in self.optimizer_classes:
+                    node_type = "optimizer"
                     pipeline_evaluator = self.pipeline_evaluator_class(
                         self.data_x,
                         self.data_y,
@@ -147,14 +159,22 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
                         self.timeout_for_pipeline_evaluation,
                     )
                     successors.append(
-                        MctsGraphNode(node, node.get_rest_problem(), optimizer)
+                        MctsGraphNode(
+                            node,
+                            node.get_rest_problem(),
+                            type(optimizer).__name__,
+                            optimizer,
+                        )
                     )
                 logger.debug(f"{len(successors)} successors for optimizers")
             else:
                 successors = list(
                     map(
                         lambda n: MctsGraphNode(
-                            node, n.get_rest_problem(), None
+                            node,
+                            n.get_rest_problem(),
+                            n.get_specified_interface(),
+                            None,
                         ),
                         super().generate_successors(node),
                     )
@@ -163,6 +183,7 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
             for successor in successors:
                 new_node_payload = successor.get_event_payload()
                 new_node_payload["event_type"] = "NEW_NODE"
+                new_node_payload["node_type"] = node_type
                 pub.sendMessage(topic, payload=new_node_payload)
             node.set_successors(successors)
             return successors
