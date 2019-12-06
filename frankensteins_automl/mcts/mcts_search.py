@@ -1,5 +1,6 @@
 import logging
 import random
+import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from threading import Thread, Lock, Event
@@ -102,9 +103,10 @@ class MctsSearch:
             )
             search_thread = Thread(target=self._search_loop, daemon=True)
             search_thread.start()
-            search_thread.join(timeout=self.config.search_timeout)
+            time.sleep(self.config.search_timeout - 5)
             logger.info("Stopping MCTS ...")
             self.stop_event.set()
+            search_thread.join(timeout=5)
         except Exception as e:
             logger.error(f"Error during search: {e}")
         return self.best_candidate, self.best_score
