@@ -32,8 +32,13 @@ root = generator.get_root_node()
 open_list = [root]
 leaf_nodes = []
 lengths = []
+unique_node_ids = []
+nodes_visited = 0
 while len(open_list) > 0 and len(lengths) < 3:
     node = open_list[0]
+    nodes_visited = nodes_visited + 1
+    if node.get_node_id() not in unique_node_ids:
+        unique_node_ids.append(node.get_node_id())
     open_list = open_list[1:]
     successors = generator.generate_successors(node)
     if len(successors) > 0:
@@ -59,6 +64,9 @@ class TestSearchSpaceGraph:
             for interface in ri:
                 assert interface["satisfied"]
         assert len(leaf_nodes) > 0
+
+    def test_unique_node_ids(self):
+        assert nodes_visited == len(unique_node_ids)
 
     def test_leaf_node_pipeline_creation(self):
         data_x, data_y = read_arff("res/datasets/blood_transfusion.arff", 4)

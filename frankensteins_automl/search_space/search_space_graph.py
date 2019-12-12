@@ -1,9 +1,12 @@
 import copy
 import logging
 import uuid
+from frankensteins_automl.event_listener import event_topics
 
 
 logger = logging.getLogger(__name__)
+
+topic = event_topics.SEARCH_GRAPH_TOPIC
 
 
 class SearchSpaceRestProblem(object):
@@ -58,10 +61,15 @@ class SearchSpaceRestProblem(object):
 
 
 class SearchSpaceGraphNode(object):
-    def __init__(self, predecessor, rest_problem):
+    def __init__(self, predecessor, rest_problem, specified_interface):
         self.predecessor = predecessor
         self.successors = []
         self.rest_problem = rest_problem
+        self.node_id = str(uuid.uuid1())
+        self.specified_interface = specified_interface
+
+    def get_node_id(self):
+        return self.node_id
 
     def get_predecessor(self):
         return self.predecessor
@@ -75,15 +83,29 @@ class SearchSpaceGraphNode(object):
     def get_rest_problem(self):
         return self.rest_problem
 
+    def get_specified_interface(self):
+        return self.specified_interface
+
     def is_leaf_node(self):
         return self.rest_problem.is_satisfied()
+
+    def get_event_payload(self):
+        predecessor_id = None
+        if self.get_predecessor() is not None:
+            predecessor_id = self.predecessor.get_node_id()
+        return {
+            "id": self.node_id,
+            "predecessor": predecessor_id,
+            "specified_interface": self.specified_interface,
+        }
 
 
 class SearchSpaceGraphGenerator(object):
     def __init__(self, search_space, initial_component_name):
         self.search_space = search_space
+        self.initial_component_name = initial_component_name
         root_component = self.search_space.get_component_by_name(
-            initial_component_name
+            self.initial_component_name
         )
         root_component_id = str(uuid.uuid1())
         unsatisfied_interfaces = []
@@ -101,7 +123,7 @@ class SearchSpaceGraphGenerator(object):
         rest_problem = SearchSpaceRestProblem(
             unsatisfied_interfaces, component_mapping
         )
-        self.root_node = SearchSpaceGraphNode(None, rest_problem)
+        self.root_node = SearchSpaceGraphNode(None, rest_problem, None)
 
     def get_root_node(self):
         return self.root_node
@@ -110,6 +132,8 @@ class SearchSpaceGraphGenerator(object):
         if node.is_leaf_node():
             logger.debug("Node is a leaf node and has no successors")
             return []
+        if node.get_successors() != []:
+            return node.get_successors()
         rest_problem = node.get_rest_problem()
         interface = rest_problem.get_first_unsatisfied_required_interface()[
             "name"
@@ -123,7 +147,13 @@ class SearchSpaceGraphGenerator(object):
             successor_rp = SearchSpaceRestProblem.from_previous_rest_problem(
                 rest_problem, component
             )
-            successors.append(SearchSpaceGraphNode(node, successor_rp))
+            specified_interface_name = component.get_name().split(".")
+            specified_interface_name = specified_interface_name.pop()
+            specified_interface_name = f"{specified_interface_name}"
+            successor = SearchSpaceGraphNode(
+                node, successor_rp, specified_interface_name
+            )
+            successors.append(successor)
         node.set_successors(successors)
         logger.debug(f"{len(successors)} successors for interface {interface}")
         return successors

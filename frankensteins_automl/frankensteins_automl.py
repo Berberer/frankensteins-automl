@@ -1,6 +1,12 @@
 import logging
+from pubsub import pub
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from frankensteins_automl.event_listener import (
+    event_logger,
+    event_rest_sender,
+    event_topics,
+)
 from frankensteins_automl.machine_learning.arff_reader import read_arff
 from frankensteins_automl.optimizers.evolution.genetic_algorithm import (
     GeneticAlgorithm,
@@ -9,6 +15,8 @@ from frankensteins_automl.optimizers.search.random_search import RandomSearch
 from frankensteins_automl.mcts.mcts_search import MctsSearchConfig, MctsSearch
 
 logger = logging.getLogger(__name__)
+
+topic = event_topics.FRANKENSTEINS_AUTOML_TOPIC
 
 
 class FrankensteinsAutoMLConfig:
@@ -21,6 +29,7 @@ class FrankensteinsAutoMLConfig:
         self.timeout_for_pipeline_evaluation = 10.0
         self.simulation_runs_amount = 1
         self.optimizers = [GeneticAlgorithm, RandomSearch]
+        self.event_send_url = None
 
 
 class FrankensteinsAutoML:
@@ -37,12 +46,24 @@ class FrankensteinsAutoML:
                 "Config is not a FrankensteinsAutoMLConfig. Cannot run."
             )
         else:
+            # Activate event listeners
+            event_logger.activate()
+            if self.config.event_send_url is not None:
+                event_rest_sender.activate(self.config.event_send_url)
             logger.debug("Load and split data")
             search_data, validation_data = self._load_data()
             logger.debug("Construct and init search")
             search = self._construct_search(search_data)
             logger.debug("Start search")
+            pub.sendMessage(topic, payload={"event_type": "SEARCH_START"})
             pipeline, search_score = search.run_search()
+            pub.sendMessage(
+                topic,
+                payload={
+                    "event_type": "SEARCH_FINISHED",
+                    "score": search_score,
+                },
+            )
             if pipeline is None:
                 logger.warning("Was not able to find a valid pipeline in time")
                 logger.warning("Please increase the given timeout")

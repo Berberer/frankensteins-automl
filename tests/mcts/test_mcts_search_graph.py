@@ -82,21 +82,6 @@ while len(open_list) > 0 and len(optimizer_leaf_nodes) < 25:
 
 
 class TestSearchSpaceGraph:
-    def test_search_space_unique_leaf_ids(self):
-        leaf_ids = []
-        leaf_nodes = []
-        for optimizer_leaf in optimizer_leaf_nodes:
-            if optimizer_leaf.get_predecessor() not in leaf_nodes:
-                leaf_nodes.append(optimizer_leaf.get_predecessor())
-        for leaf in leaf_nodes:
-            leaf_id = leaf.get_leaf_id()
-            assert leaf_id is not None
-            assert leaf_id not in leaf_ids
-            if leaf_id not in leaf_ids:
-                leaf_ids.append(leaf_id)
-        assert len(leaf_ids) == len(optimizer_leaf_nodes)
-        assert len(leaf_ids) == len(leaf_nodes)
-
     def test_leaf_optimizer_nodes(self):
         for optimizer_leaf in optimizer_leaf_nodes:
             assert isinstance(optimizer_leaf, MctsGraphNode)
