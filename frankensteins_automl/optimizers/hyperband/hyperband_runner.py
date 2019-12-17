@@ -6,10 +6,18 @@ from math import log, ceil
 # Adapted from https://github.com/zygmuntz/hyperband
 
 
-class HyperbandRun:
-    def __init__(self, get_params_function, try_params_function):
+class HyperbandRunner:
+    def __init__(
+        self,
+        get_params_function,
+        try_params_function,
+        change_params_function,
+        early_stop_function,
+    ):
         self.get_params = get_params_function
         self.try_params = try_params_function
+        self.change_params = change_params_function
+        self.early_stop = early_stop_function
 
         self.max_iter = 81  # maximum iterations per configuration
         self.eta = 3  # defines configuration downsampling rate (default = 3)
@@ -18,14 +26,11 @@ class HyperbandRun:
         self.s_max = int(self.logeta(self.max_iter))
         self.B = (self.s_max + 1) * self.max_iter
 
-        self.results = []  # list of dicts
-        self.counter = 0
-        self.best_loss = np.inf
-        self.best_counter = -1
-
 
 # can be called multiple times
 def run(self, skip_last=0):
+    best_candidate = None
+    best_score = 0.0
 
     for s in reversed(range(self.s_max + 1)):
 
@@ -46,37 +51,34 @@ def run(self, skip_last=0):
             n_configs = n * self.eta ** (-i)
             n_iterations = r * self.eta ** (i)
 
-            val_losses = []
+            scores = []
             early_stops = []
+
+            # Change configuration at one position for the actual searching
+            for i, t in enumerate(T):
+                T[i] = self.change_params(t, 1)
 
             for t in T:
 
-                self.counter += 1
+                score = self.try_params(
+                    t, ratio=(n_iterations / self.max_iter)
+                )
 
-                result = self.try_params(t)
-
-                loss = result["loss"]
-                val_losses.append(loss)
-
-                early_stop = result.get("early_stop", False)
-                early_stops.append(early_stop)
+                scores.append(score)
+                early_stops.append(
+                    self.early_stop(score, best_score, n_iterations)
+                )
 
                 # keeping track of the best result so far (for display only)
                 # could do it be checking results each time, but hey
-                if loss < self.best_loss:
-                    self.best_loss = loss
-                    self.best_counter = self.counter
-
-                result["counter"] = self.counter
-                result["params"] = t
-                result["iterations"] = n_iterations
-
-                self.results.append(result)
+                if score >= best_score:
+                    best_score = score
+                    best_candidate = t
 
             # select a number of best configurations for the next loop
             # filter out early stops, if any
-            indices = np.argsort(val_losses)
+            indices = np.argsort(scores)
             T = [T[i] for i in indices if not early_stops[i]]
-            T = T[: int(n_configs / self.eta)]
+            T = T[-int(n_configs / self.eta) :]
 
-    return self.results
+    return best_candidate, best_score
