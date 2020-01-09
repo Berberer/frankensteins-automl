@@ -2,6 +2,7 @@ import copy
 import logging
 import uuid
 from frankensteins_automl.event_listener import event_topics
+from frankensteins_automl.search_space.graphs import GraphGenerator, GraphNode
 
 
 logger = logging.getLogger(__name__)
@@ -60,25 +61,11 @@ class SearchSpaceRestProblem(object):
         return self.component_mapping
 
 
-class SearchSpaceGraphNode(object):
+class SearchSpaceGraphNode(GraphNode):
     def __init__(self, predecessor, rest_problem, specified_interface):
-        self.predecessor = predecessor
-        self.successors = []
+        super().__init__(predecessor)
         self.rest_problem = rest_problem
-        self.node_id = str(uuid.uuid1())
         self.specified_interface = specified_interface
-
-    def get_node_id(self):
-        return self.node_id
-
-    def get_predecessor(self):
-        return self.predecessor
-
-    def get_successors(self):
-        return self.successors
-
-    def set_successors(self, successors):
-        self.successors = successors
 
     def get_rest_problem(self):
         return self.rest_problem
@@ -100,7 +87,7 @@ class SearchSpaceGraphNode(object):
         }
 
 
-class SearchSpaceGraphGenerator(object):
+class SearchSpaceGraphGenerator(GraphGenerator):
     def __init__(self, search_space, initial_component_name):
         self.search_space = search_space
         self.initial_component_name = initial_component_name
@@ -128,12 +115,7 @@ class SearchSpaceGraphGenerator(object):
     def get_root_node(self):
         return self.root_node
 
-    def generate_successors(self, node):
-        if node.is_leaf_node():
-            logger.debug("Node is a leaf node and has no successors")
-            return []
-        if node.get_successors() != []:
-            return node.get_successors()
+    def get_node_successors(self, node):
         rest_problem = node.get_rest_problem()
         interface = rest_problem.get_first_unsatisfied_required_interface()[
             "name"
