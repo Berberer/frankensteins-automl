@@ -1,10 +1,10 @@
 import logging
-import random
 import time
-import uuid
-from concurrent.futures import ThreadPoolExecutor
 from threading import Thread, Lock, Event
 from frankensteins_automl.event_listener import event_topics
+from frankensteins_automl.mcts.monte_carlo_simulation_runner import (
+    MonteCarloSimulationRunner,
+)
 from frankensteins_automl.mcts.mcts_search_graph import MctsGraphGenerator
 from frankensteins_automl.machine_learning.pipeline import (
     pipeline_constructor,
@@ -19,38 +19,6 @@ topic = event_topics.MCTS_TOPIC
 
 
 graph_generation_lock = Lock()
-
-
-class RandomSearchSimulation:
-    def __init__(self, start_node, graph_generator):
-        self.start_node = start_node
-        self.graph_generator = graph_generator
-        self.id = str(uuid.uuid1())
-
-    def perform_simulation(self, optimization_time_budget):
-        logger.debug(
-            f"{self.id}-Start random search simulation at: {self.start_node}"
-        )
-        current_node = self.start_node
-        optimization_leaf = None
-        while optimization_leaf is None:
-            if current_node.is_leaf_node():
-                optimization_leaf = current_node
-            else:
-                successors = current_node.get_successors()
-                if successors is None or successors == []:
-                    graph_generation_lock.acquire()
-                    successors = self.graph_generator.generate_successors(
-                        current_node
-                    )
-                    graph_generation_lock.release()
-                current_node = random.choice(successors)
-        logger.debug(f"{self.id}-Optimize at leaf {optimization_leaf}")
-        result, score = optimization_leaf.perform_optimization(
-            optimization_time_budget
-        )
-        logger.debug(f"{self.id}-Optimization finished")
-        return optimization_leaf, result, score
 
 
 class MctsSearchConfig:
@@ -139,9 +107,8 @@ class MctsSearch:
 
     def _select_candidate_node(self):
         current_node = self.root_node
-        while (
-            current_node.get_successors() is not None
-            and len(current_node.get_successors()) > 0
+        while (current_node.get_successors() is not None) and (
+            len(current_node.get_successors()) > 0
         ):
             successors = current_node.get_successors()
             current_node = successors[0]
@@ -162,24 +129,17 @@ class MctsSearch:
         return successors
 
     def _simulation_of_expanded_nodes(self, expanded_nodes):
-        def _run_random_search_simulation(start_node):
-            random_search = RandomSearchSimulation(
-                start_node, self.graph_generator
-            )
-            return random_search.perform_simulation(
-                self.config.optimization_time_budget
-            )
+        def optimize_leaf_node(leaf_node, time_budget):
+            return leaf_node.perform_optimization(time_budget)
 
-        start_nodes = expanded_nodes * self.config.simulation_runs_amount
-        logger.debug(f"Starting simulations at: {start_nodes}")
-        logger.debug(f"Start random search simulations")
-        thread_pool = ThreadPoolExecutor()
-        optimized_leafs = thread_pool.map(
-            _run_random_search_simulation, start_nodes
+        runner = MonteCarloSimulationRunner(
+            expanded_nodes,
+            self.config.simulation_runs_amount,
+            self.graph_generator,
+            graph_generation_lock,
+            optimize_leaf_node,
         )
-        thread_pool.shutdown(wait=False)
-        logger.debug("Simulation threads mapped")
-        return list(optimized_leafs)
+        return runner.run(self.config.optimization_time_budget)
 
     def _check_optimization_results(self, optimization_results):
         leaf_nodes = []
