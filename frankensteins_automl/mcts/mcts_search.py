@@ -154,7 +154,7 @@ class MctsSearch:
                     node.predecessor.get_rest_problem(),
                     params,
                 )
-                logger.info(f"New beste pipeline: {self.best_candidate}")
+                logger.info(f"New best pipeline: {self.best_candidate}")
         return leaf_nodes
 
     def _back_propagation(self, leaf_nodes):
