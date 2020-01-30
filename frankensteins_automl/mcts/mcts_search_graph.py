@@ -23,10 +23,8 @@ class MctsGraphNode(SearchSpaceGraphNode):
         self.optimizer = optimizer
         self.parameter_domain = None
         if (
-            self.rest_problem.is_satisfied()
-            and super().is_leaf_node()
-            and self.optimizer is None
-        ):
+            self.rest_problem.is_satisfied() and super().is_leaf_node()
+        ) and self.optimizer is None:
             self.parameter_domain = OptimizationParameterDomain(
                 self.rest_problem.get_component_mapping()
             )
@@ -70,15 +68,19 @@ class MctsGraphNode(SearchSpaceGraphNode):
         )
         logger.debug(f"Score Avg: {self.score_avg}")
         exploration_factor = 0.0
-        if (self.predecessor is not None) and (
-            self.predecessor.get_simulation_visits() + 1
-            > self.simulation_visits
-        ):
-            exploration_factor = 1.41421 * math.sqrt(
-                math.log(float(self.predecessor.get_simulation_visits() + 1))
-                / float(self.simulation_visits)
-            )
-            logger.debug(f"Exploration factor: {exploration_factor}")
+        if self.predecessor is not None:
+            if self.simulation_visits < (
+                self.predecessor.get_simulation_visits() + 1
+            ):
+                exploration_factor = math.log(
+                    float(self.predecessor.get_simulation_visits() + 1)
+                )
+                exploration_factor = exploration_factor / float(
+                    self.simulation_visits
+                )
+                exploration_factor = math.sqrt(exploration_factor)
+                exploration_factor = exploration_factor * 1.41421
+                logger.debug(f"Exploration factor: {exploration_factor}")
         self.node_value = self.score_avg + exploration_factor
         logger.debug(f"New node value: {self.node_value}")
         if self.predecessor is not None:
@@ -91,7 +93,6 @@ class MctsGraphNode(SearchSpaceGraphNode):
                     "weight": self.node_value,
                 },
             )
-        pass
 
     def perform_optimization(self, time_budget):
         if self.optimizer is not None:
