@@ -56,7 +56,7 @@ parameter_config = {
     },
 }
 rest_problem = SearchSpaceRestProblem(required_interfaces, component_mapping)
-data_x, data_y = read_arff("res/datasets/blood_transfusion.arff", 4)
+data_x, data_y, _, _ = read_arff("res/datasets/blood_transfusion.arff", 4)
 evaluator = PipelineEvaluator(
     data_x, data_y, "sklearn.pipeline.make_pipeline", rest_problem
 )

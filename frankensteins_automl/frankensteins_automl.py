@@ -79,7 +79,7 @@ class FrankensteinsAutoML:
                 return pipeline, score
 
     def _load_data(self):
-        data_x, data_y = read_arff(
+        data_x, data_y, _, _ = read_arff(
             self.config.data_path, self.config.data_target_column_index
         )
         search_x, validate_x, search_y, validate_y = train_test_split(

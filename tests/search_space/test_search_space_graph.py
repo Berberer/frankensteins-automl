@@ -69,7 +69,9 @@ class TestSearchSpaceGraph:
         assert nodes_visited == len(unique_node_ids)
 
     def test_leaf_node_pipeline_creation(self):
-        data_x, data_y = read_arff("res/datasets/blood_transfusion.arff", 4)
+        data_x, data_y, _, _ = read_arff(
+            "res/datasets/blood_transfusion.arff", 4
+        )
         for leaf in leaf_nodes:
             logger.info("Component mapping: ")
             cm = leaf.get_rest_problem().get_component_mapping()
