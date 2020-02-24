@@ -5,5 +5,6 @@ pre-commit==1.18.3
 pypubsub==4.0.3
 requests2==2.16.0
 scikit-learn==0.21.3
+smac==0.11.1
 stopit==1.1.2
 tox==3.14.0
