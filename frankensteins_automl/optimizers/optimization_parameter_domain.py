@@ -1,6 +1,7 @@
 import heapq
 import logging
 import numpy
+import random
 import uuid
 
 
@@ -75,6 +76,10 @@ class OptimizationParameterDomain(object):
                 (result[0], self.id_to_vector_mapping[result[1]])
             )
         return result_vectors
+
+    def get_random_result(self):
+        candidate_score, candidate_id = random.choice(self.results)
+        return candidate_score, self.id_to_vector_mapping[candidate_id]
 
     def get_score_of_result(self, result):
         result_str = str(result)
