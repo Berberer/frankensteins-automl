@@ -1,4 +1,6 @@
 import logging
+import random
+from numpy.random import RandomState
 from pubsub import pub
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
@@ -8,8 +10,15 @@ from frankensteins_automl.event_listener import (
     event_topics,
 )
 from frankensteins_automl.machine_learning.arff_reader import read_arff
+from frankensteins_automl.optimizers.baysian.smac_optimizer import SMAC
 from frankensteins_automl.optimizers.evolution.genetic_algorithm import (
     GeneticAlgorithm,
+)
+from frankensteins_automl.optimizers.hyperband.hyperband_optimizer import (
+    Hyperband,
+)
+from frankensteins_automl.optimizers.search.discretization import (
+    discretization_search,
 )
 from frankensteins_automl.optimizers.search.random_search import RandomSearch
 from frankensteins_automl.mcts.mcts_search import MctsSearchConfig, MctsSearch
@@ -28,13 +37,21 @@ class FrankensteinsAutoMLConfig:
         self.timout_for_optimizers_in_seconds = 30.0
         self.timeout_for_pipeline_evaluation = 10.0
         self.simulation_runs_amount = 1
-        self.optimizers = [GeneticAlgorithm, RandomSearch]
+        self.random_seed = None
+        self.optimizers = [
+            SMAC,
+            GeneticAlgorithm,
+            Hyperband,
+            discretization_search.DiscretizationSearch,
+            RandomSearch,
+        ]
         self.event_send_url = None
 
 
 class FrankensteinsAutoML:
     def __init__(self, config):
         self.config = config
+        self.random_state = None
 
     def run(self):
         if self.config is None:
@@ -50,6 +67,14 @@ class FrankensteinsAutoML:
             event_logger.activate()
             if self.config.event_send_url is not None:
                 event_rest_sender.activate(self.config.event_send_url)
+            # Set random seed for Python and NumPy if requested
+            if self.config.random_seed is not None:
+                seed = int(self.config.random_seed)
+                logger.debug(f"Applying random seed {seed}")
+                random.seed(seed)
+                self.random_state = RandomState(seed)
+            else:
+                self.random_state = RandomState()
             logger.debug("Load and split data")
             search_data, validation_data = self._load_data()
             logger.debug("Construct and init search")
@@ -88,7 +113,9 @@ class FrankensteinsAutoML:
         return (search_x, search_y), (validate_x, validate_y)
 
     def _construct_search(self, search_data):
-        config = MctsSearchConfig(search_data[0], search_data[1])
+        config = MctsSearchConfig(
+            search_data[0], search_data[1], self.random_state
+        )
         config.search_timeout = self.config.timeout_in_seconds
         config.optimization_time_budget = (
             self.config.timout_for_optimizers_in_seconds

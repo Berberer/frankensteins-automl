@@ -67,6 +67,7 @@ generator = MctsGraphGenerator(
         0.0,
         1.0,
     ],
+    None,
 )
 root = generator.get_root_node()
 open_list = [root]

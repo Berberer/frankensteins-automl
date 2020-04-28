@@ -22,7 +22,7 @@ graph_generation_lock = Lock()
 
 
 class MctsSearchConfig:
-    def __init__(self, data_x, data_y):
+    def __init__(self, data_x, data_y, numpy_random_state):
         self.search_timeout = 600.0
         self.optimization_time_budget = 30.0
         self.timeout_for_pipeline_evaluation = 10.0
@@ -36,6 +36,7 @@ class MctsSearchConfig:
         self.simulation_runs_amount = 3
         self.data_x = data_x
         self.data_y = data_y
+        self.numpy_random_state = numpy_random_state
 
 
 class MctsSearch:
@@ -52,6 +53,7 @@ class MctsSearch:
             self.config.timeout_for_pipeline_evaluation,
             self.config.data_x,
             self.config.data_y,
+            self.config.numpy_random_state,
         )
         self.root_node = self.graph_generator.get_root_node()
         self.best_candidate = None

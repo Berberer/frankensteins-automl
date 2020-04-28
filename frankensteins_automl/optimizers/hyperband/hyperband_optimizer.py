@@ -17,11 +17,13 @@ class Hyperband(AbstractOptimizer):
         parameter_domain,
         pipeline_evaluator,
         timeout_for_pipeline_evaluation,
+        numpy_random_state,
     ):
         super().__init__(
             parameter_domain,
             pipeline_evaluator,
             timeout_for_pipeline_evaluation,
+            numpy_random_state,
         )
         self.hyperband_runner = HyperbandRunner(
             self._select_hyperband_parameters,

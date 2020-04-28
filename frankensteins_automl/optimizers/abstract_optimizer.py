@@ -8,7 +8,11 @@ logger = logging.getLogger(__name__)
 
 class AbstractOptimizer(ABC):
     def __init__(
-        self, parameter_domain, pipeline_evaluator, pipeline_evaluation_timeout
+        self,
+        parameter_domain,
+        pipeline_evaluator,
+        pipeline_evaluation_timeout,
+        numpy_random_state,
     ):
         super().__init__()
         self.parameter_domain = parameter_domain
@@ -16,6 +20,7 @@ class AbstractOptimizer(ABC):
         self.pipeline_evaluation_timeout = pipeline_evaluation_timeout
         self.min_vector = self.parameter_domain.get_min_vector()
         self.max_vector = self.parameter_domain.get_max_vector()
+        self.numpy_random_state = numpy_random_state
 
     def _score_candidate(self, candidate):
         score = numpy.clip(candidate, self.min_vector, self.max_vector)

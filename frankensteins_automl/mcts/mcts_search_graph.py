@@ -122,6 +122,7 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
         timeout_for_pipeline_evaluation,
         data_x,
         data_y,
+        numpy_random_state,
     ):
         super().__init__(search_space, initial_component_name)
         self.optimizer_constructors = []
@@ -130,6 +131,7 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
         self.data_x = data_x
         self.data_y = data_y
         self.optimizer_classes = optimizer_classes
+        self.numpy_random_state = numpy_random_state
         self.root_node = MctsGraphNode(
             None, self.root_node.get_rest_problem(), None, None
         )
@@ -158,6 +160,7 @@ class MctsGraphGenerator(SearchSpaceGraphGenerator):
                         node.get_parameter_domain(),
                         pipeline_evaluator,
                         self.timeout_for_pipeline_evaluation,
+                        self.numpy_random_state,
                     )
                     successors.append(
                         MctsGraphNode(

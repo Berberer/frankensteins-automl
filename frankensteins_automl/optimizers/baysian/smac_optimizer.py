@@ -10,7 +10,7 @@ from frankensteins_automl.optimizers.abstract_optimizer import (
 )
 from smac.facade.smac_hpo_facade import SMAC4HPO
 from smac.optimizer.objective import average_cost
-from smac.runhistory import RunHistory
+from smac.runhistory.runhistory import RunHistory
 from smac.scenario.scenario import Scenario
 from smac.tae.execute_ta_run import StatusType
 
@@ -18,17 +18,19 @@ from smac.tae.execute_ta_run import StatusType
 logger = logging.getLogger(__name__)
 
 
-class GeneticAlgorithm(AbstractOptimizer):
+class SMAC(AbstractOptimizer):
     def __init__(
         self,
         parameter_domain,
         pipeline_evaluator,
         timeout_for_pipeline_evaluation,
+        numpy_random_state,
     ):
         super().__init__(
             parameter_domain,
             pipeline_evaluator,
             timeout_for_pipeline_evaluation,
+            numpy_random_state,
         )
         self.best_candidate = self.parameter_domain.get_default_config()
         self.best_score = self._score_candidate(self.best_candidate)
@@ -103,6 +105,7 @@ class GeneticAlgorithm(AbstractOptimizer):
                 optimization_time_budget - self.pipeline_evaluation_timeout
             ),
             tae_runner=_evaluate_config,
+            rng=self.numpy_random_state,
             runhistory=self._create_run_history(),
         )
         try:

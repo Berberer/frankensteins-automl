@@ -17,11 +17,13 @@ class GeneticAlgorithm(AbstractOptimizer):
         parameter_domain,
         pipeline_evaluator,
         timeout_for_pipeline_evaluation,
+        numpy_random_state,
     ):
         super().__init__(
             parameter_domain,
             pipeline_evaluator,
             timeout_for_pipeline_evaluation,
+            numpy_random_state,
         )
         self.best_candidate = self.parameter_domain.get_default_config()
         self.best_score = self._score_candidate(self.best_candidate)
@@ -103,7 +105,7 @@ class GeneticAlgorithm(AbstractOptimizer):
             next_generation.append(next_generation_offsprings[index])
             del next_generation_offsprings[index]
         # Select random 5% as pairs for cross overs
-        # (transform to the next even number if neccessary)
+        # (transform to the next even number if necessary)
         selection_amount = int(self.individuals_per_generation * 0.05)
         selection_amount = int(math.ceil(selection_amount / 2.0) * 2)
         indices = random.sample(
