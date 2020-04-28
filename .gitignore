@@ -89,6 +89,8 @@ target/
 #   install all needed dependencies.
 #Pipfile.lock
 
+env/
+
 # celery beat schedule file
 celerybeat-schedule
 
@@ -158,3 +160,4 @@ $RECYCLE.BIN/
 
 ### Logs ###
 logs/*.log
+smac3-output*/*
