@@ -1,6 +1,5 @@
 import logging
 import random
-from numpy.random import RandomState
 from pubsub import pub
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
@@ -51,7 +50,6 @@ class FrankensteinsAutoMLConfig:
 class FrankensteinsAutoML:
     def __init__(self, config):
         self.config = config
-        self.random_state = None
 
     def run(self):
         if self.config is None:
@@ -72,9 +70,6 @@ class FrankensteinsAutoML:
                 seed = int(self.config.random_seed)
                 logger.debug(f"Applying random seed {seed}")
                 random.seed(seed)
-                self.random_state = RandomState(seed)
-            else:
-                self.random_state = RandomState()
             logger.debug("Load and split data")
             search_data, validation_data = self._load_data()
             logger.debug("Construct and init search")
@@ -114,7 +109,7 @@ class FrankensteinsAutoML:
 
     def _construct_search(self, search_data):
         config = MctsSearchConfig(
-            search_data[0], search_data[1], self.random_state
+            search_data[0], search_data[1], self.config.random_seed
         )
         config.search_timeout = self.config.timeout_in_seconds
         config.optimization_time_budget = (

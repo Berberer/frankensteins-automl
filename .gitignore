@@ -161,3 +161,4 @@ $RECYCLE.BIN/
 ### Logs ###
 logs/*.log
 smac3-output*/*
+runhistory.json

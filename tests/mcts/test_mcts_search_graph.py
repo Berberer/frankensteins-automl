@@ -1,3 +1,4 @@
+from numpy.random import RandomState
 from frankensteins_automl.machine_learning.pipeline import pipeline_evaluator
 from frankensteins_automl.mcts.mcts_search_graph import (
     MctsGraphGenerator,
@@ -67,7 +68,8 @@ generator = MctsGraphGenerator(
         0.0,
         1.0,
     ],
-    None,
+    1,
+    RandomState(seed=1),
 )
 root = generator.get_root_node()
 open_list = [root]

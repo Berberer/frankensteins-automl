@@ -10,28 +10,26 @@ class Discretization:
     def __init__(self, parameter_domain):
         self.parameter_list = []
         self.selected_values = []
-        self.parameter_descriptions = (
-            parameter_domain.get_parameter_descriptions()
-        )
+        self.parameter_descriptions = parameter_domain
         self.refinement_index = 0
         for component in self.parameter_descriptions.values():
             for parameter in component.values():
                 self.parameter_list.append(parameter)
-                if parameter.type == "int":
+                if parameter["type"] == "int":
                     self.selected_values.append(
                         {
-                            "lower_split_bound": parameter.min,
-                            "upper_split_bound": parameter.max,
+                            "lower_split_bound": parameter["min"],
+                            "upper_split_bound": parameter["max"],
                         }
                     )
-                elif parameter.type == "double":
+                elif parameter["type"] == "double":
                     minimum_split_size = (
-                        parameter.max - parameter.min
+                        parameter["max"] - parameter["min"]
                     ) * minimum_split_ratio
                     self.selected_values.append(
                         {
-                            "lower_split_bound": parameter.min,
-                            "upper_split_bound": parameter.max,
+                            "lower_split_bound": parameter["min"],
+                            "upper_split_bound": parameter["max"],
                             "minimum_split_size": minimum_split_size,
                         }
                     )
@@ -70,12 +68,12 @@ class Discretization:
         if self.is_atomic():
             i = 0
             config = {}
-            for component in self.parameter_descriptions.keys():
-                component_config = {}
-                for parameter in component.keys():
-                    component_config[parameter] = self.selected_values[i]
+            for c_name, c in self.parameter_descriptions.items():
+                c_config = {}
+                for parameter in c.keys():
+                    c_config[parameter] = self.selected_values[i]
                     i = i + 1
-                config[component] = component_config
+                config[c_name] = c_config
             return config
         else:
             return None
@@ -84,10 +82,10 @@ class Discretization:
 def refine_discretization(discretization):
     refinements = []
     if not discretization.is_atomic():
-        param_description = discretization.parameter_descriptions[
+        param_description = discretization.parameter_list[
             discretization.refinement_index
         ]
-        param_type = param_description.type
+        param_type = param_description["type"]
         if param_type == "bool":
             refinements.append(
                 Discretization.from_previous_discretization_by_refinement(
@@ -100,7 +98,7 @@ def refine_discretization(discretization):
                 )
             )
         elif param_type == "cat":
-            for cat in param_description.values:
+            for cat in param_description["values"]:
                 refinements.append(
                     Discretization.from_previous_discretization_by_refinement(
                         discretization, cat

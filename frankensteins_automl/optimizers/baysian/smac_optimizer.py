@@ -24,12 +24,14 @@ class SMAC(AbstractOptimizer):
         parameter_domain,
         pipeline_evaluator,
         timeout_for_pipeline_evaluation,
+        seed,
         numpy_random_state,
     ):
         super().__init__(
             parameter_domain,
             pipeline_evaluator,
             timeout_for_pipeline_evaluation,
+            seed,
             numpy_random_state,
         )
         self.best_candidate = self.parameter_domain.get_default_config()
@@ -55,6 +57,7 @@ class SMAC(AbstractOptimizer):
                 "run_obj": "quality",
                 "wallclock_limit": optimization_time_budget,
                 "deterministic": "true",
+                "output_dir": None,
             }
         )
 
@@ -70,25 +73,37 @@ class SMAC(AbstractOptimizer):
             for _ in range(int(self.candidates_for_warmstart_history * 0.5)):
                 candidates.append(self.parameter_domain.get_random_result())
         for score, candidate in candidates:
-            runhistory.add(
-                config=Configuration(
-                    self.configuration_space,
-                    values=self._vector_to_smac_config(candidate),
-                ),
-                cost=(1 - score),
-                time=self.pipeline_evaluation_timeout,
-                status=StatusType.SUCCESS,
-            )
+            if self.seed is not None:
+                runhistory.add(
+                    config=Configuration(
+                        self.configuration_space,
+                        values=self._vector_to_smac_dict(candidate),
+                    ),
+                    cost=(1 - score),
+                    time=self.pipeline_evaluation_timeout,
+                    status=StatusType.SUCCESS,
+                    seed=self.seed,
+                )
+            else:
+                runhistory.add(
+                    config=Configuration(
+                        self.configuration_space,
+                        values=self._vector_to_smac_dict(candidate),
+                    ),
+                    cost=(1 - score),
+                    time=self.pipeline_evaluation_timeout,
+                    status=StatusType.SUCCESS,
+                )
         return runhistory
 
-    def _smac_config_to_vector(self, config):
+    def _smac_dict_to_vector(self, config):
         length = len(config)
         vector = numpy.zeros(length)
         for i in range(length):
             vector[i] = config[str(i)]
         return vector
 
-    def _vector_to_smac_config(self, vector):
+    def _vector_to_smac_dict(self, vector):
         length = len(vector)
         config = {}
         for i in range(length):
@@ -97,7 +112,8 @@ class SMAC(AbstractOptimizer):
 
     def perform_optimization(self, optimization_time_budget):
         def _evaluate_config(config):
-            score = 0.5
+            vector = self._smac_dict_to_vector(config.get_dictionary())
+            score = self._score_candidate(vector)
             return 1 - score
 
         smac = SMAC4HPO(
@@ -115,7 +131,9 @@ class SMAC(AbstractOptimizer):
         score = _evaluate_config(candidate)
         if score > self.best_score:
             self.best_score = score
-            self.best_candidate = self._smac_config_to_vector(candidate)
+            self.best_candidate = self._smac_dict_to_vector(
+                candidate.get_dictionary()
+            )
         return (
             self.parameter_domain.config_from_vector(self.best_candidate),
             self.best_score,

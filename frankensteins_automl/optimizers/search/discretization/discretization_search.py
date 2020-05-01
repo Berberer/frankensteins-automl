@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 graph_generation_lock = Lock()
 
+SIMULATION_RUNS_AMOUNT = 3
+
 
 class DiscretizationSearch(AbstractOptimizer):
     def __init__(
@@ -24,12 +26,14 @@ class DiscretizationSearch(AbstractOptimizer):
         parameter_domain,
         pipeline_evaluator,
         timeout_for_pipeline_evaluation,
+        seed,
         numpy_random_state,
     ):
         super().__init__(
             parameter_domain,
             pipeline_evaluator,
             timeout_for_pipeline_evaluation,
+            seed,
             numpy_random_state,
         )
         self.best_candidate = self.parameter_domain.get_default_config()
@@ -58,10 +62,14 @@ class DiscretizationSearch(AbstractOptimizer):
             # Find unexpanded, not covered node
             # where the highest rated sub-graph is rooted
             while not current_node.get_successors() == []:
+                if current_node.is_covered():
+                    continue
                 successors = current_node.get_successors()
                 successors = list(
                     filter(lambda n: not n.is_covered(), successors)
                 )
+                if len(successors) == 0:
+                    continue
                 best_successor = successors[0]
                 best_successor_score = successors[0].get_best_successor_score()
                 for successor in successors:
@@ -82,7 +90,7 @@ class DiscretizationSearch(AbstractOptimizer):
             # Score expanded nodes with Monte Carlo simulations
             runner = MonteCarloSimulationRunner(
                 expanded_nodes,
-                self.config.simulation_runs_amount,
+                SIMULATION_RUNS_AMOUNT,
                 self.graph_generator,
                 graph_generation_lock,
                 score_atomic_discretization,
@@ -90,7 +98,7 @@ class DiscretizationSearch(AbstractOptimizer):
 
             # Check if the simulations found a new best candidate
             # and backpropagate the results from the leafs
-            results = runner.run(self.config.optimization_time_budget)
+            results = runner.run(self.pipeline_evaluation_timeout)
             for result in results:
                 leaf, candidate, score = result
                 leaf.best_successor_score = score
@@ -109,7 +117,7 @@ class DiscretizationGraphNode(GraphNode):
         super().__init__(predecessor)
         self.discretization = discretization
         self.covered = self.discretization.is_atomic()
-        self.best_successor_score = 0.0
+        self.best_successor_score = float("-inf")
 
     def backpropagate(self):
         if not self.covered:
@@ -140,7 +148,10 @@ class DiscretizationGraphGenerator(GraphGenerator):
     def __init__(self, parameter_domain):
         self.parameter_domain = parameter_domain
         self.root_node = DiscretizationGraphNode(
-            None, discretization_helper.Discretization(parameter_domain)
+            None,
+            discretization_helper.Discretization(
+                parameter_domain.get_parameter_descriptions()
+            ),
         )
 
     def get_root_node(self):

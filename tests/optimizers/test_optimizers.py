@@ -67,7 +67,11 @@ class TestOptimizers:
         for optimizer_class in optimizer_classes:
             domain = OptimizationParameterDomain(component_mapping)
             optimizer = optimizer_class(
-                domain, TestEvaluator(), 10.0, numpy.random.RandomState(1)
+                domain,
+                TestEvaluator(),
+                2.0,
+                1,
+                numpy.random.RandomState(seed=1),
             )
             _, score = optimizer.perform_optimization(10)
             assert score > -8.0
@@ -78,7 +82,11 @@ class TestOptimizers:
             domain = OptimizationParameterDomain(component_mapping)
             domain.add_result(numpy.array([1.1, -1.1]), existing_score)
             optimizer = optimizer_class(
-                domain, TestEvaluator(), 10.0, numpy.random.RandomState(1)
+                domain,
+                TestEvaluator(),
+                2.0,
+                1,
+                numpy.random.RandomState(seed=1),
             )
             _, score = optimizer.perform_optimization(0.1)
             assert existing_score <= score
@@ -88,7 +96,11 @@ class TestOptimizers:
         for optimizer_class in optimizer_classes:
             domain = OptimizationParameterDomain(component_mapping)
             optimizer = optimizer_class(
-                domain, TestEvaluator(), 10.0, numpy.random.RandomState(1)
+                domain,
+                TestEvaluator(),
+                2.0,
+                1,
+                numpy.random.RandomState(seed=1),
             )
             start_time = perf_counter()
             optimizer.perform_optimization(timeout_in_seconds)

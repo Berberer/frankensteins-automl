@@ -17,16 +17,18 @@ class Hyperband(AbstractOptimizer):
         parameter_domain,
         pipeline_evaluator,
         timeout_for_pipeline_evaluation,
+        seed,
         numpy_random_state,
     ):
         super().__init__(
             parameter_domain,
             pipeline_evaluator,
             timeout_for_pipeline_evaluation,
+            seed,
             numpy_random_state,
         )
         self.hyperband_runner = HyperbandRunner(
-            self._select_hyperband_parameters,
+            self._select_hyperband_candidates,
             super()._score_candidate,
             super()._random_transform_candidate,
             self._check_candidate_for_early_stop,
@@ -35,8 +37,8 @@ class Hyperband(AbstractOptimizer):
         self.best_score = self._score_candidate(self.best_candidate)
 
     def perform_optimization(self, optimization_time_budget):
-        spend_time_budget = 0
-        last_hyperband_run = 0
+        spend_time_budget = 0.0
+        last_hyperband_run = 0.0
         while (
             spend_time_budget + last_hyperband_run
         ) <= optimization_time_budget:
@@ -59,7 +61,7 @@ class Hyperband(AbstractOptimizer):
         top_candidates = self.parameter_domain.get_top_results(50)
         i = random.randint(0, 99)
         if i < len(top_candidates):
-            return top_candidates[i]
+            return top_candidates[i][1]
         else:
             return self.parameter_domain.draw_random_config()
 

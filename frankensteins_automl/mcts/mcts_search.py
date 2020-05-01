@@ -1,5 +1,6 @@
 import logging
 import time
+from numpy.random import RandomState
 from threading import Thread, Lock, Event
 from frankensteins_automl.event_listener import event_topics
 from frankensteins_automl.mcts.monte_carlo_simulation_runner import (
@@ -22,7 +23,7 @@ graph_generation_lock = Lock()
 
 
 class MctsSearchConfig:
-    def __init__(self, data_x, data_y, numpy_random_state):
+    def __init__(self, data_x, data_y, seed):
         self.search_timeout = 600.0
         self.optimization_time_budget = 30.0
         self.timeout_for_pipeline_evaluation = 10.0
@@ -36,7 +37,8 @@ class MctsSearchConfig:
         self.simulation_runs_amount = 3
         self.data_x = data_x
         self.data_y = data_y
-        self.numpy_random_state = numpy_random_state
+        self.seed = seed
+        self.numpy_random_state = RandomState(seed=seed)
 
 
 class MctsSearch:
@@ -53,6 +55,7 @@ class MctsSearch:
             self.config.timeout_for_pipeline_evaluation,
             self.config.data_x,
             self.config.data_y,
+            self.config.seed,
             self.config.numpy_random_state,
         )
         self.root_node = self.graph_generator.get_root_node()

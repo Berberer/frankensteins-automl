@@ -14,12 +14,14 @@ class RandomSearch(AbstractOptimizer):
         parameter_domain,
         pipeline_evaluator,
         timeout_for_pipeline_evaluation,
+        seed,
         numpy_random_state,
     ):
         super().__init__(
             parameter_domain,
             pipeline_evaluator,
             timeout_for_pipeline_evaluation,
+            seed,
             numpy_random_state,
         )
         self.best_candidate = self.parameter_domain.get_default_config()

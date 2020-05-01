@@ -12,6 +12,7 @@ class AbstractOptimizer(ABC):
         parameter_domain,
         pipeline_evaluator,
         pipeline_evaluation_timeout,
+        seed,
         numpy_random_state,
     ):
         super().__init__()
@@ -20,6 +21,7 @@ class AbstractOptimizer(ABC):
         self.pipeline_evaluation_timeout = pipeline_evaluation_timeout
         self.min_vector = self.parameter_domain.get_min_vector()
         self.max_vector = self.parameter_domain.get_max_vector()
+        self.seed = seed
         self.numpy_random_state = numpy_random_state
 
     def _score_candidate(self, candidate):
