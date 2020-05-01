@@ -50,26 +50,36 @@ class DiscretizationSearch(AbstractOptimizer):
             return config_vector, self._score_candidate(config_vector)
 
         optimization_start = time()
+        root = self.graph_generator.get_root_node()
         while (
             (time() - optimization_start) + self.pipeline_evaluation_timeout
         ) <= optimization_time_budget:
             # Stop optimization if the root node is covered
             # since then the whole graph was evaluated
-            current_node = self.graph_generator.get_root_node()
-            if current_node.is_covered():
+            if root.is_covered():
                 break
+            current_node = root
 
             # Find unexpanded, not covered node
             # where the highest rated sub-graph is rooted
             while not current_node.get_successors() == []:
-                if current_node.is_covered():
-                    continue
                 successors = current_node.get_successors()
                 successors = list(
                     filter(lambda n: not n.is_covered(), successors)
                 )
+                # A successor node was found, which is covered
+                # Perform backpropagation and restart search from the root
+                # Except when the root node is covered, than abort
                 if len(successors) == 0:
-                    continue
+                    if not current_node.is_covered():
+                        current_node.backpropagate()
+                    if root.get_node_id() == current_node.get_node_id():
+                        break
+                    else:
+                        current_node = root
+                        continue
+                # A uncovered node was found
+                # The best successor can be selected for next iteration
                 best_successor = successors[0]
                 best_successor_score = successors[0].get_best_successor_score()
                 for successor in successors:
@@ -129,7 +139,8 @@ class DiscretizationGraphNode(GraphNode):
                 if successor_score > self.best_successor_score:
                     self.best_successor_score = successor_score
             self.covered = all_successores_covered
-            self.predecessor.backpropagate()
+            if self.predecessor is not None:
+                self.predecessor.backpropagate()
 
     def get_discretization(self):
         return self.discretization
