@@ -6,9 +6,16 @@ from frankensteins_automl.frankensteins_automl import (
     FrankensteinsAutoML,
 )
 
-config = FrankensteinsAutoMLConfig("<path/to/data/arff/file>", <target_column_index>)
+config = FrankensteinsAutoMLConfig()
+# Either use an ARFF file as input
+config.data_input_from_arff_file("<path/to/data/arff/file>", <target_column_index>)
+# Or alternatively, provide the data as two arrays yourself
+direct_data_input(<data_array>, <target_class_array>)
+
 automl = FrankensteinsAutoML(config)
-pipeline, score = automl.run()
+results = automl.run()
+pipeline = results["pipeline_object"]
+score = results["search_score"]
 ```
 
 **Visualize search**:

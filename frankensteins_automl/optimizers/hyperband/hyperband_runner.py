@@ -1,4 +1,4 @@
-import numpy as np
+import numpy
 
 from math import log, ceil
 
@@ -27,7 +27,7 @@ class HyperbandRunner:
         self.B = (self.s_max + 1) * self.max_iter
 
     # can be called multiple times
-    def run(self, skip_last=0):
+    def run(self, optimization_run_stop_event, mcts_stop_event, skip_last=0):
         best_candidate = None
         best_score = float("-inf")
 
@@ -70,9 +70,14 @@ class HyperbandRunner:
                         best_score = score
                         best_candidate = t
 
+                    if mcts_stop_event.is_set() or (
+                        optimization_run_stop_event.is_set()
+                    ):
+                        return best_candidate, best_score
+
                 # select a number of best configurations for the next loop
                 # filter out early stops, if any
-                indices = np.argsort(scores)
+                indices = numpy.argsort(scores)
                 T = [T[i] for i in indices if not early_stops[i]]
                 T = T[-int(n_configs / self.eta) :]
 

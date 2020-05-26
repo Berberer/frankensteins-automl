@@ -1,5 +1,7 @@
 import copy
 import logging
+from sklearn.pipeline import make_pipeline, make_union
+from sklearn.experimental import enable_hist_gradient_boosting  # noqa: F401
 from frankensteins_automl.search_space.search_space_component_instance import (
     SearchSpaceComponentInstance,
 )
@@ -70,3 +72,21 @@ def _assemble_component_instance(
         return None
     else:
         return instance.construct_pipeline_element()
+
+
+def build_topology(topology_array):
+    return make_pipeline(*topology_array)
+
+
+def preprocessor_union(preprocessor_1, preprocessor_2):
+    return make_union(*preprocessor_1, *preprocessor_2)
+
+
+def topology_union(*topologies):
+    union_array = []
+    for topology in topologies:
+        if isinstance(topology, list):
+            union_array.extend(topology)
+        else:
+            union_array.append(topology)
+    return union_array

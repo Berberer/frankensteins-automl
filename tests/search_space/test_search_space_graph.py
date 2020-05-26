@@ -87,6 +87,7 @@ class TestSearchSpaceGraph:
                 numpy.copy(data_y),
                 "sklearn.pipeline.make_pipeline",
                 leaf.get_rest_problem(),
+                123,
             )
             pipeline = pipeline_constructor.construct_pipeline(
                 "sklearn.pipeline.make_pipeline",

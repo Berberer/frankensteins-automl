@@ -24,6 +24,7 @@ class SMAC(AbstractOptimizer):
         parameter_domain,
         pipeline_evaluator,
         timeout_for_pipeline_evaluation,
+        mcts_stop_event,
         seed,
         numpy_random_state,
     ):
@@ -31,6 +32,7 @@ class SMAC(AbstractOptimizer):
             parameter_domain,
             pipeline_evaluator,
             timeout_for_pipeline_evaluation,
+            mcts_stop_event,
             seed,
             numpy_random_state,
         )
@@ -41,13 +43,19 @@ class SMAC(AbstractOptimizer):
 
     def _create_configuration_space(self):
         config_space = ConfigurationSpace()
-        min, max = self.parameter_domain._calculate_min_and_max_vectors()
+        min = self.parameter_domain.get_min_vector()
+        max = self.parameter_domain.get_max_vector()
         for i in range(len(min)):
-            config_space.add_hyperparameter(
-                UniformFloatHyperparameter(
+            param = None
+            if min[i] == max[i]:
+                param = UniformFloatHyperparameter(
+                    name=str(i), lower=min[i], upper=max[i] + 0.0001
+                )
+            else:
+                param = UniformFloatHyperparameter(
                     name=str(i), lower=min[i], upper=max[i]
                 )
-            )
+            config_space.add_hyperparameter(param)
         return config_space
 
     def _create_scenario(self, optimization_time_budget):
@@ -73,27 +81,16 @@ class SMAC(AbstractOptimizer):
             for _ in range(int(self.candidates_for_warmstart_history * 0.5)):
                 candidates.append(self.parameter_domain.get_random_result())
         for score, candidate in candidates:
-            if self.seed is not None:
-                runhistory.add(
-                    config=Configuration(
-                        self.configuration_space,
-                        values=self._vector_to_smac_dict(candidate),
-                    ),
-                    cost=(1 - score),
-                    time=self.pipeline_evaluation_timeout,
-                    status=StatusType.SUCCESS,
-                    seed=self.seed,
-                )
-            else:
-                runhistory.add(
-                    config=Configuration(
-                        self.configuration_space,
-                        values=self._vector_to_smac_dict(candidate),
-                    ),
-                    cost=(1 - score),
-                    time=self.pipeline_evaluation_timeout,
-                    status=StatusType.SUCCESS,
-                )
+            runhistory.add(
+                config=Configuration(
+                    self.configuration_space,
+                    values=self._vector_to_smac_dict(candidate),
+                ),
+                cost=(1 - score),
+                time=self.pipeline_evaluation_timeout,
+                status=StatusType.SUCCESS,
+                seed=self.seed,
+            )
         return runhistory
 
     def _smac_dict_to_vector(self, config):
@@ -116,24 +113,26 @@ class SMAC(AbstractOptimizer):
             score = self._score_candidate(vector)
             return 1 - score
 
-        smac = SMAC4HPO(
-            scenario=self._create_scenario(
-                optimization_time_budget - self.pipeline_evaluation_timeout
-            ),
-            tae_runner=_evaluate_config,
-            rng=self.numpy_random_state,
-            runhistory=self._create_run_history(),
-        )
-        try:
-            candidate = smac.optimize()
-        finally:
-            candidate = smac.solver.incumbent
-        score = _evaluate_config(candidate)
-        if score > self.best_score:
-            self.best_score = score
-            self.best_candidate = self._smac_dict_to_vector(
-                candidate.get_dictionary()
+        if not self._is_stop_event_set():
+            smac = SMAC4HPO(
+                scenario=self._create_scenario(
+                    optimization_time_budget - self.pipeline_evaluation_timeout
+                ),
+                tae_runner=_evaluate_config,
+                rng=self.numpy_random_state,
+                runhistory=self._create_run_history(),
             )
+            try:
+                candidate = smac.optimize()
+            finally:
+                candidate = smac.solver.incumbent
+            vector = self._smac_dict_to_vector(candidate.get_dictionary())
+            score = self._score_candidate(vector)
+            if score > self.best_score:
+                self.best_score = score
+                self.best_candidate = self._smac_dict_to_vector(
+                    candidate.get_dictionary()
+                )
         return (
             self.parameter_domain.config_from_vector(self.best_candidate),
             self.best_score,

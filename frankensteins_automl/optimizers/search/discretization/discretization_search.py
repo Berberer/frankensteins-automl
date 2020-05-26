@@ -1,5 +1,4 @@
 import logging
-from threading import Lock
 from time import time
 from frankensteins_automl.mcts.monte_carlo_simulation_runner import (
     MonteCarloSimulationRunner,
@@ -15,8 +14,6 @@ from frankensteins_automl.search_space.graphs import GraphGenerator, GraphNode
 
 logger = logging.getLogger(__name__)
 
-graph_generation_lock = Lock()
-
 SIMULATION_RUNS_AMOUNT = 3
 
 
@@ -26,6 +23,7 @@ class DiscretizationSearch(AbstractOptimizer):
         parameter_domain,
         pipeline_evaluator,
         timeout_for_pipeline_evaluation,
+        mcts_stop_event,
         seed,
         numpy_random_state,
     ):
@@ -33,6 +31,7 @@ class DiscretizationSearch(AbstractOptimizer):
             parameter_domain,
             pipeline_evaluator,
             timeout_for_pipeline_evaluation,
+            mcts_stop_event,
             seed,
             numpy_random_state,
         )
@@ -49,11 +48,9 @@ class DiscretizationSearch(AbstractOptimizer):
             )
             return config_vector, self._score_candidate(config_vector)
 
-        optimization_start = time()
         root = self.graph_generator.get_root_node()
-        while (
-            (time() - optimization_start) + self.pipeline_evaluation_timeout
-        ) <= optimization_time_budget:
+        run_stop = time() + optimization_time_budget
+        while (not self._is_stop_event_set()) and (time() < run_stop):
             # Stop optimization if the root node is covered
             # since then the whole graph was evaluated
             if root.is_covered():
@@ -62,7 +59,9 @@ class DiscretizationSearch(AbstractOptimizer):
 
             # Find unexpanded, not covered node
             # where the highest rated sub-graph is rooted
-            while not current_node.get_successors() == []:
+            while current_node.get_successors() != [] and (
+                not self._is_stop_event_set()
+            ):
                 successors = current_node.get_successors()
                 successors = list(
                     filter(lambda n: not n.is_covered(), successors)
@@ -89,21 +88,22 @@ class DiscretizationSearch(AbstractOptimizer):
                         best_successor_score = successor_score
                 current_node = best_successor
 
+            if current_node == root or current_node is None:
+                break
+
             # Expand this node
-            graph_generation_lock.acquire()
             expanded_nodes = self.graph_generator.generate_successors(
                 current_node
             )
             current_node.set_successors(expanded_nodes)
-            graph_generation_lock.release()
 
             # Score expanded nodes with Monte Carlo simulations
             runner = MonteCarloSimulationRunner(
                 expanded_nodes,
                 SIMULATION_RUNS_AMOUNT,
                 self.graph_generator,
-                graph_generation_lock,
                 score_atomic_discretization,
+                self.mcts_stop_event,
             )
 
             # Check if the simulations found a new best candidate

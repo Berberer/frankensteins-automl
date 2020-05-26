@@ -91,9 +91,9 @@ class SearchSpaceGraphGenerator(GraphGenerator):
     def __init__(self, search_space, initial_component_name):
         self.search_space = search_space
         self.initial_component_name = initial_component_name
-        root_component = self.search_space.get_component_by_name(
+        root_component = self.search_space.get_components_by_name(
             self.initial_component_name
-        )
+        )[0]
         root_component_id = str(uuid.uuid1())
         unsatisfied_interfaces = []
         component_mapping = {}

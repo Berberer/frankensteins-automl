@@ -2,7 +2,7 @@ import logging
 import math
 import numpy
 import random
-from threading import Thread, Event
+from time import time
 from frankensteins_automl.optimizers.abstract_optimizer import (
     AbstractOptimizer,
 )
@@ -17,6 +17,7 @@ class GeneticAlgorithm(AbstractOptimizer):
         parameter_domain,
         pipeline_evaluator,
         timeout_for_pipeline_evaluation,
+        mcts_stop_event,
         seed,
         numpy_random_state,
     ):
@@ -24,12 +25,12 @@ class GeneticAlgorithm(AbstractOptimizer):
             parameter_domain,
             pipeline_evaluator,
             timeout_for_pipeline_evaluation,
+            mcts_stop_event,
             seed,
             numpy_random_state,
         )
         self.best_candidate = self.parameter_domain.get_default_config()
         self.best_score = self._score_candidate(self.best_candidate)
-        self.stop_event = Event()
         self.individuals_per_generation = 100
 
     def perform_optimization(self, optimization_time_budget):
@@ -37,36 +38,33 @@ class GeneticAlgorithm(AbstractOptimizer):
         if best_from_domain is not None and len(best_from_domain) > 0:
             self.best_score, self.best_candidate = best_from_domain[0]
         logger.debug(f"Genetic algorithm starts")
-        search_thread = Thread(target=self._evoluation_loop)
-        search_thread.start()
-        search_thread.join(timeout=optimization_time_budget)
-        self.stop_event.set()
+        self._evolution_loop(optimization_time_budget)
         logger.debug(f"Genetic algorithm ends with score: {self.best_score}")
         return (
             self.parameter_domain.config_from_vector(self.best_candidate),
             self.best_score,
         )
 
-    def _evoluation_loop(self):
+    def _evolution_loop(self, optimization_time_budget):
+        run_stop = time() + optimization_time_budget
         generation = self._init_first_generation()
-        if not self.stop_event.is_set():
-            while True:
-                next_generation = self._generate_next_generation(generation)
-                generation = []
-                for individual in next_generation:
-                    score = self._score_candidate(individual)
-                    generation.append((score, individual))
-                    if score > self.best_score:
-                        self.best_candidate = individual
-                        self.best_score = score
-                        logger.debug(
-                            f"New best score in genetic algorithm: {score}"
-                        )
-                    if self.stop_event.is_set():
-                        break
-                if self.stop_event.is_set():
-                    logger.info("Stop event in genetic algorithm")
+        while (not self._is_stop_event_set()) and (time() < run_stop):
+            next_generation = self._generate_next_generation(generation)
+            generation = []
+            for individual in next_generation:
+                score = self._score_candidate(individual)
+                generation.append((score, individual))
+                if score > self.best_score:
+                    self.best_candidate = individual
+                    self.best_score = score
+                    logger.debug(
+                        f"New best score in genetic algorithm: {score}"
+                    )
+                if self._is_stop_event_set() or (time() > run_stop):
                     break
+            if self._is_stop_event_set() or (time() > run_stop):
+                logger.info("Stop event in genetic algorithm")
+                break
 
     def _init_first_generation(self):
         generation = []
@@ -78,6 +76,8 @@ class GeneticAlgorithm(AbstractOptimizer):
         )
         # Fill the other 80% with random candidates
         for _ in range(self.individuals_per_generation - len(generation)):
+            if self._is_stop_event_set():
+                break
             individual = self.parameter_domain.draw_random_config()
             score = self._score_candidate(individual)
             generation.append((score, individual))

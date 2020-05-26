@@ -1,5 +1,5 @@
 import numpy
-import stopit
+from threading import Event
 from time import perf_counter
 from frankensteins_automl.optimizers.optimization_parameter_domain import (
     OptimizationParameterDomain,
@@ -57,8 +57,7 @@ optimizer_classes = [
 
 
 class TestEvaluator:
-    @stopit.threading_timeoutable(default=0.0)
-    def evaluate_pipeline(self, params):
+    def evaluate_pipeline(self, params, *args):
         return -(params["vars"]["x"]) ** 2 - (params["vars"]["y"]) ** 2
 
 
@@ -73,7 +72,7 @@ class TestOptimizers:
                 1,
                 numpy.random.RandomState(seed=1),
             )
-            _, score = optimizer.perform_optimization(10)
+            _, score = optimizer.perform_optimization(10, Event())
             assert score > -8.0
 
     def test_optimizer_uses_warmstart(self):
@@ -88,7 +87,7 @@ class TestOptimizers:
                 1,
                 numpy.random.RandomState(seed=1),
             )
-            _, score = optimizer.perform_optimization(0.1)
+            _, score = optimizer.perform_optimization(0.1, Event())
             assert existing_score <= score
 
     def test_optimization_timeout(self):
@@ -103,7 +102,7 @@ class TestOptimizers:
                 numpy.random.RandomState(seed=1),
             )
             start_time = perf_counter()
-            optimizer.perform_optimization(timeout_in_seconds)
+            optimizer.perform_optimization(timeout_in_seconds, Event())
             stop_time = perf_counter()
             assert (stop_time - start_time) < (timeout_in_seconds + 1)
             assert (stop_time - start_time) > (timeout_in_seconds - 1)

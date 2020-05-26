@@ -12,10 +12,12 @@ class OptimizationParameterDomain(object):
     def __init__(self, component_mapping):
         self.component_mapping = component_mapping
         self.parameter_descriptions = {}
+        self.has_parameter = False
         for component_id, component in self.component_mapping.items():
-            self.parameter_descriptions[
-                component_id
-            ] = component.get_parameter_description()
+            description = component.get_parameter_description()
+            self.parameter_descriptions[component_id] = description
+            if len(description) > 0:
+                self.has_parameter = True
         self.results = []
         self.id_to_scores_mapping = {}
         self.id_to_vector_mapping = {}
@@ -43,6 +45,9 @@ class OptimizationParameterDomain(object):
                     min_vector.append(0.0)
                     max_vector.append(float(len(parameter["values"]) - 1))
         return numpy.array(min_vector), numpy.array(max_vector)
+
+    def get_has_parameter(self):
+        return self.has_parameter
 
     def get_parameter_descriptions(self):
         return self.parameter_descriptions
@@ -142,6 +147,6 @@ class OptimizationParameterDomain(object):
                         value = 0
                     if value >= len(parameter["values"]):
                         value = len(parameter["values"] - 1)
-                    value = parameter["values"][int(value)]
+                    value = parameter["values"][int(round(value))]
                 config[component_id][parameter_id] = value
         return config

@@ -1,6 +1,7 @@
 import copy
 import logging
 import random
+import uuid
 
 
 logger = logging.getLogger(__name__)
@@ -9,6 +10,7 @@ logger = logging.getLogger(__name__)
 class SearchSpaceComponent(object):
     def __init__(self, description):
         self.name = description["name"]
+        self.id = str(uuid.uuid1())
         logger.debug(f"Create search space component {self.name}")
         self.provided_interfaces = []
         if "providedInterface" in description:
@@ -16,9 +18,8 @@ class SearchSpaceComponent(object):
         self.required_interfaces = {}
         if "requiredInterface" in description:
             self.required_interfaces = description["requiredInterface"]
-        self.function_pointer = (
-            "function_pointer" in description
-            and description["function_pointer"]
+        self.function_pointer = "function_pointer" in description and (
+            description["function_pointer"]
         )
         self.params = {}
         if "parameter" in description:
@@ -30,6 +31,9 @@ class SearchSpaceComponent(object):
 
     def get_name(self):
         return self.name
+
+    def get_id(self):
+        return self.id
 
     def get_provided_interfaces(self):
         return self.provided_interfaces
@@ -149,7 +153,9 @@ class SearchSpaceComponent(object):
         keyword_args = {}
         if parameter_config is not None:
             for parameter in self.params:
-                key = self.params[parameter]["construction_key"]
+                key = parameter
+                if "construction_key" in self.params[parameter]:
+                    key = self.params[parameter]["construction_key"]
                 if isinstance(key, str):
                     keyword_args[key] = parameter_config[parameter]
                 elif isinstance(key, int):

@@ -58,7 +58,7 @@ parameter_config = {
 rest_problem = SearchSpaceRestProblem(required_interfaces, component_mapping)
 data_x, data_y, _, _ = read_arff("res/datasets/blood_transfusion.arff", 4)
 evaluator = PipelineEvaluator(
-    data_x, data_y, "sklearn.pipeline.make_pipeline", rest_problem
+    data_x, data_y, "sklearn.pipeline.make_pipeline", rest_problem, 123
 )
 
 
@@ -68,11 +68,11 @@ class TestPipelineEvaluation:
         assert c1.get_name() == "sklearn.pipeline.make_pipeline"
         assert c2 is not None
         assert c3 is not None
-        score = evaluator.evaluate_pipeline(parameter_config, timeout=10.0)
+        score = evaluator.evaluate_pipeline(parameter_config, 10)
         assert score > 0.5
 
     def test_pipeline_evaluation_timeout(self):
         start_time = perf_counter()
-        evaluator.evaluate_pipeline(parameter_config, timeout=0.01)
+        evaluator.evaluate_pipeline(parameter_config, 0.01)
         stop_time = perf_counter()
-        assert (stop_time - start_time) < 0.1
+        assert (stop_time - start_time) < 0.05

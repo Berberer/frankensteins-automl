@@ -17,6 +17,7 @@ class Hyperband(AbstractOptimizer):
         parameter_domain,
         pipeline_evaluator,
         timeout_for_pipeline_evaluation,
+        mcts_stop_event,
         seed,
         numpy_random_state,
     ):
@@ -24,6 +25,7 @@ class Hyperband(AbstractOptimizer):
             parameter_domain,
             pipeline_evaluator,
             timeout_for_pipeline_evaluation,
+            mcts_stop_event,
             seed,
             numpy_random_state,
         )
@@ -39,16 +41,20 @@ class Hyperband(AbstractOptimizer):
     def perform_optimization(self, optimization_time_budget):
         spend_time_budget = 0.0
         last_hyperband_run = 0.0
-        while (
-            spend_time_budget + last_hyperband_run
-        ) <= optimization_time_budget:
+        est_time = 0.0
+        while (est_time <= (optimization_time_budget)) and (
+            not self._is_stop_event_set()
+        ):
             run_start = time()
-            run_candidate, run_score = self.hyperband_runner.run()
+            run_candidate, run_score = self.hyperband_runner.run(
+                self.optimization_run_stop_event, self.mcts_stop_event
+            )
             if run_score >= self.best_score:
                 self.best_score = run_score
                 self.best_candidate = run_candidate
             last_hyperband_run = time() - run_start
             spend_time_budget = spend_time_budget + last_hyperband_run
+            est_time = spend_time_budget + last_hyperband_run
         return (
             self.parameter_domain.config_from_vector(self.best_candidate),
             self.best_score,

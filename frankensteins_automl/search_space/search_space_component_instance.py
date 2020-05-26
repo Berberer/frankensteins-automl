@@ -44,15 +44,15 @@ class SearchSpaceComponentInstance(object):
                     )
                     return False
                 interface_element_path = (
-                    interface_elements[interface_id].__class__.__module__
-                    + "."
-                    + interface_elements[interface_id].__class__.__name__
+                    f"{interface_elements[interface_id].__class__.__module__}"
+                    f"."
+                    f"{interface_elements[interface_id].__class__.__name__}"
                 )
                 if interface_path != interface_element_path:
                     warning = str(
-                        interface_path
-                        + " was expected but got an element of type "
-                        + interface_element_path
+                        f"{interface_path}"
+                        f" was expected but got an element of type "
+                        f"{interface_element_path}"
                     )
                     logger.debug(warning)
                     # return False
@@ -70,10 +70,10 @@ class SearchSpaceComponentInstance(object):
             return None
         # Stop if components are needed for required interfaces
         # but not provided
-        if self.component.has_required_interfaces() and (
-            self.required_interfaces is None
-            or len(self.required_interfaces) == 0
-        ):
+        no_interfaces = self.required_interfaces is None or (
+            len(self.required_interfaces) == 0
+        )
+        if self.component.has_required_interfaces() and (no_interfaces):
             return None
         # Get path to element module and element constructor
         name_elements = self.component.get_name().split(".")
@@ -90,7 +90,7 @@ class SearchSpaceComponentInstance(object):
             module = importlib.import_module(".".join(module_path))
             if self.component.is_function_pointer():
                 component_function = getattr(module, class_name)
-                logger.warning(
+                logger.debug(
                     f"Resolved function pointer: {component_function}"
                 )
                 return component_function

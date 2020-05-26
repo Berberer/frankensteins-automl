@@ -29,7 +29,6 @@ description = {
             "default": 0.53,
             "min": 0.05,
             "max": 1.01,
-            "construction_key": "step",
         }
     ],
 }
