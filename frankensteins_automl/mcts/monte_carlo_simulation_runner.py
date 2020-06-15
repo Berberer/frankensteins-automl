@@ -51,7 +51,7 @@ class MonteCarloSimulationRunner:
                     r.start()
             logger.debug("Simulation threads started")
 
-            time.sleep(timeout - 5)
+            time.sleep(timeout)
 
             logger.debug("Set optimization stop events")
             while self.optimizer_stop_event_queue.empty():

@@ -72,12 +72,13 @@ class MctsGraphNode(SearchSpaceGraphNode):
         )
         logger.debug(f"Score Avg: {self.score_avg}")
         exploration_factor = 0.0
-        if self.predecessor is not None:
+        predecessor = self.get_predecessor()
+        if predecessor is not None and isinstance(predecessor, MctsGraphNode):
             if self.simulation_visits < (
-                self.predecessor.get_simulation_visits() + 1
+                predecessor.get_simulation_visits() + 1
             ):
                 exploration_factor = math.log(
-                    float(self.predecessor.get_simulation_visits() + 1)
+                    float(predecessor.get_simulation_visits() + 1)
                 )
                 exploration_factor = exploration_factor / float(
                     self.simulation_visits
@@ -85,9 +86,13 @@ class MctsGraphNode(SearchSpaceGraphNode):
                 exploration_factor = math.sqrt(exploration_factor)
                 exploration_factor = exploration_factor * 1.41421
                 logger.debug(f"Exploration factor: {exploration_factor}")
+        else:
+            logger.debug(
+                f"Can't calc expl factor since predecessor is {predecessor}"
+            )
         self.node_value = self.score_avg + exploration_factor
         logger.debug(f"New node value: {self.node_value}")
-        if self.predecessor is not None:
+        if predecessor is not None:
             pub.sendMessage(
                 search_topic,
                 payload={

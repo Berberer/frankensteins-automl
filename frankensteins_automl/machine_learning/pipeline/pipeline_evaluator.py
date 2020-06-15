@@ -1,5 +1,4 @@
 import logging
-import numpy
 import pickle
 import time
 import warnings
@@ -63,8 +62,8 @@ class PipelineEvaluator:
         )
         if pipeline is not None:
             pipeline_data = pickle.dumps(pipeline).hex()
-            data_x = numpy.copy(self.data_x)
-            data_y = numpy.copy(self.data_y)
+            data_x = self.data_x
+            data_y = self.data_y
             # Try to create a subset of the training data
             # with the given ratio
             try:
