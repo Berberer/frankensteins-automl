@@ -51,6 +51,7 @@ class FrankensteinsAutoMLConfig:
             RandomSearch,
         ]
         self.count_optimizer_calls = False
+        self.event_logging = False
         self.event_send_url = None
 
     def data_input_from_arff_file(self, data_path, data_target_column_index):
@@ -77,8 +78,9 @@ class FrankensteinsAutoML:
             )
         else:
             # Activate event listeners
-            event_logger.activate()
             solution_scored_listener.activate()
+            if self.config.event_logging:
+                event_logger.activate()
             if self.config.event_send_url is not None:
                 event_rest_sender.activate(self.config.event_send_url)
             optimizer_call_counter = None

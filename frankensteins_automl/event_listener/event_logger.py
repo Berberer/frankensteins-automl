@@ -3,17 +3,18 @@ import logging
 from pubsub import pub
 from frankensteins_automl.event_listener import event_topics
 
-logger = logging.getLogger("event-logger")
-logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler("logs/event-log.log", "w")
-formatter = logging.Formatter("%(asctime)s %(message)s")
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
+logger = None
 
 
 def activate():
+    global logger
+    logger = logging.getLogger("event-logger")
+    logger.setLevel(logging.INFO)
+    file_handler = logging.FileHandler("logs/event-log.log", "w")
+    formatter = logging.Formatter("%(asctime)s %(message)s")
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
     logger.info("Start of event log:\n")
-    # pub.subscribe(_snoop, pub.ALL_TOPICS)
     for topic in event_topics.ALL_TOPICS:
         logger.info(f"Log for topic: {topic}")
         pub.subscribe(_listener, topic)
