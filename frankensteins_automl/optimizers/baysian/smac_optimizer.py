@@ -115,9 +115,7 @@ class SMAC(AbstractOptimizer):
 
         if not self._is_stop_event_set():
             smac = SMAC4HPO(
-                scenario=self._create_scenario(
-                    optimization_time_budget - self.pipeline_evaluation_timeout
-                ),
+                scenario=self._create_scenario(optimization_time_budget),
                 tae_runner=_evaluate_config,
                 rng=self.numpy_random_state,
                 runhistory=self._create_run_history(),
