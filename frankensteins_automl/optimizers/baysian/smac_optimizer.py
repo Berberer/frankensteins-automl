@@ -9,7 +9,6 @@ from frankensteins_automl.optimizers.abstract_optimizer import (
     AbstractOptimizer,
 )
 from smac.facade.smac_hpo_facade import SMAC4HPO
-from smac.optimizer.objective import average_cost
 from smac.runhistory.runhistory import RunHistory
 from smac.scenario.scenario import Scenario
 from smac.tae.execute_ta_run import StatusType
@@ -70,7 +69,7 @@ class SMAC(AbstractOptimizer):
         )
 
     def _create_run_history(self):
-        runhistory = RunHistory(aggregate_func=average_cost)
+        runhistory = RunHistory()
         candidates = []
         candidates.extend(
             self.parameter_domain.get_top_results(

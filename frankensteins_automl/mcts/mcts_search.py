@@ -7,7 +7,10 @@ from frankensteins_automl.event_listener import event_topics
 from frankensteins_automl.mcts.monte_carlo_simulation_runner import (
     MonteCarloSimulationRunner,
 )
-from frankensteins_automl.mcts.mcts_search_graph import MctsGraphGenerator
+from frankensteins_automl.mcts.mcts_search_graph import (
+    MctsGraphGenerator,
+    MctsGraphNode,
+)
 from frankensteins_automl.machine_learning.pipeline import pipeline_evaluator
 from frankensteins_automl.search_space.search_space_reader import (
     create_search_space,
@@ -170,7 +173,8 @@ class MctsSearch:
         while len(leaf_nodes) > 0:
             node, score = leaf_nodes.pop(0)
             logger.debug(f"Recalculate {node.get_node_id()} with {score}")
-            node.recalculate_node_value(score)
+            if isinstance(node, MctsGraphNode):
+                node.recalculate_node_value(score)
             predecessor = node.get_predecessor()
             if predecessor is not None:
                 leaf_nodes.append((predecessor, score))
