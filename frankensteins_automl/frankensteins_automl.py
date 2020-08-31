@@ -37,10 +37,10 @@ class FrankensteinsAutoMLConfig:
         self.data_y = None
         self.perform_pipeline_validation = False
         self.validation_ratio = 0.3
-        self.timeout_in_seconds = 300.0
+        self.timeout_in_seconds = 600.0
         self.timeout_for_optimizers_in_seconds = 30.0
         self.timeout_for_pipeline_evaluation = 10.0
-        self.simulation_runs_amount = 1
+        self.simulation_runs_amount = 3
         self.random_node_selection = False
         self.random_seed = random.randint(0, 30)
         self.optimizers = [
