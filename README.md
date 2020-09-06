@@ -1,4 +1,6 @@
 # frankensteins-automl
+This is the reference implementation of my Masters Thesis [Optimizer Ensembles for Automated Machine Learning](https://github.com/Berberer/master-thesis).
+
 **Simple usage**:
 ```python
 from frankensteins_automl.frankensteins_automl import (
