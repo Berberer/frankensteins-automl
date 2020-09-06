@@ -1,5 +1,5 @@
 # frankensteins-automl
-This is the reference implementation of my Masters Thesis [Optimizer Ensembles for Automated Machine Learning](https://github.com/Berberer/master-thesis).
+This is the reference implementation of my Master Thesis [Optimizer Ensembles for Automated Machine Learning](https://github.com/Berberer/master-thesis).
 
 **Simple usage**:
 ```python
